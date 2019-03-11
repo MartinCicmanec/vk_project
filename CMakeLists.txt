@@ -1,0 +1,74 @@
+cmake_minimum_required (VERSION 3.10.1)
+#set(CMAKE_CONFIGURATION_TYPES ${CMAKE_BUILD_TYPE} CACHE STRING "Release" FORCE)
+set(CMAKE_VERBOSE_MAKEFILE 0)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_SUPPRESS_REGENERATION true)
+project(vk_project)
+# The version number.
+set(PROJECT_VERSION_MAJOR 1)
+set(PROJECT_VERSION_MINOR 0)
+
+if( CMAKE_BUILD_TYPE STREQUAL "" )
+	set( CMAKE_BUILD_TYPE "debug" )
+endif()
+
+if( NOT DEFINED VK_USE_PLATFORM )
+	if( WIN32 )
+		set( VK_USE_PLATFORM "WIN32" )
+	elseif( UNIX )
+		set( VK_USE_PLATFORM "XCB" )
+	endif()
+endif()
+
+if( VK_USE_PLATFORM STREQUAL "VK_USE_PLATFORM_WIN32_KHR" )
+	set( CMAKE_C_FLAGS_RELWITHDEBINFO    "${CMAKE_C_FLAGS_RELWITHDEBINFO} /MT" )
+	set( CMAKE_C_FLAGS_RELEASE           "${CMAKE_C_FLAGS_RELEASE} /MT" )
+	set( CMAKE_C_FLAGS_DEBUG             "${CMAKE_C_FLAGS_DEBUG} /MTd" )
+	set( CMAKE_CXX_FLAGS_RELWITHDEBINFO  "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /MT" )
+	set( CMAKE_CXX_FLAGS_RELEASE         "${CMAKE_CXX_FLAGS_RELEASE} /MT" )
+	set( CMAKE_CXX_FLAGS_DEBUG           "${CMAKE_CXX_FLAGS_DEBUG} /MTd" )
+	set( PLATFORM_LIBRARY                "" )
+elseif( VK_USE_PLATFORM STREQUAL "XCB" )
+	add_definitions( -std=c++11 )
+	set( PLATFORM_LIBRARY dl xcb )
+elseif( VK_USE_PLATFORM STREQUAL "XLIB" )
+	add_definitions( -std=c++11 )
+	set( PLATFORM_LIBRARY dl X11 )
+endif()
+
+if( CMAKE_BUILD_TYPE STREQUAL "debug" )
+	add_definitions(-D_DEBUG)
+endif()
+
+#set(CMAKE_CXX_STANDARD 11)
+
+add_definitions( -DVK_NO_PROTOTYPES )
+add_definitions( -DVK_USE_PLATFORM_${VK_USE_PLATFORM}_KHR )
+
+set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/bin)
+
+find_package(Vulkan REQUIRED)
+
+file(GLOB MAIN_SOURCES "src/*.cpp")
+file(GLOB HEADER_FILES "include/*.h" "include/*.inl")
+
+add_executable(main ${MAIN_SOURCES})
+
+if (WIN32)
+    add_custom_command(TARGET main PRE_BUILD COMMAND SET VK_INSTANCE_LAYERS=VK_LAYER_LUNARG_standard_validation)
+endif (WIN32)
+if (UNIX)
+    add_custom_command(TARGET main PRE_BUILD COMMAND export VK_INSTANCE_LAYERS=VK_LAYER_LUNARG_standard_validation)
+endif (UNIX)
+
+if (WIN32)
+    target_link_libraries(main PUBLIC )
+endif (WIN32)
+if (UNIX)
+    target_link_libraries(main PUBLIC ${PLATFORM_LIBRARY} vulkan dl X11)
+endif (UNIX)
+
+target_include_directories(main PUBLIC
+    ${PROJECT_SOURCE_DIR}/include/
+	${PROJECT_SOURCE_DIR}/include/*.inl
+)

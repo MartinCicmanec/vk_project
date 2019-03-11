@@ -1,0 +1,54 @@
+cmake_minimum_required (VERSION 3.10.1)
+#set(CMAKE_CONFIGURATION_TYPES ${CMAKE_BUILD_TYPE} CACHE STRING "Release" FORCE)
+set(CMAKE_VERBOSE_MAKEFILE 1)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_C_COMPILER gcc)
+set(CMAKE_CXX_COMPILER g++)
+project(Test)
+# The version number.
+set(PROJECT_VERSION_MAJOR 1)
+set(PROJECT_VERSION_MINOR 0)
+
+if (UNIX)
+    set(CMAKE_CXX_FLAGS_DEBUG "-D_DEBUG=1 -O0 -g3 -pedantic -MMD -MP")
+    set(CMAKE_CXX_FLAGS_RELEASE "-D_DEBUG=0 -O3 -pedantic -MMD -MP")
+endif (UNIX)
+
+if (NOT CMAKE_BUILD_TYPE)
+    message(STATUS "No build type selected, default to Debug")
+    set(CMAKE_BUILD_TYPE "Debug")
+endif()
+
+add_definitions( -DVK_NO_PROTOTYPES )
+add_definitions( -DVK_USE_PLATFORM_XLIB_KHR )
+
+set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/bin)
+
+set(CMAKE_CXX_STANDARD 11)
+
+# search for required packages
+#find_package(PostgreSQL REQUIRED)
+
+file(GLOB MAIN_SOURCES "src/*.cpp")
+find_package(Vulkan REQUIRED)
+
+add_executable(main ${MAIN_SOURCES})
+
+if (WIN32)
+    add_custom_command(TARGET main PRE_BUILD COMMAND SET VK_INSTANCE_LAYERS=VK_LAYER_LUNARG_standard_validation)
+endif (WIN32)
+if (UNIX)
+    add_custom_command(TARGET main PRE_BUILD COMMAND export VK_INSTANCE_LAYERS=VK_LAYER_LUNARG_standard_validation)
+endif (UNIX)
+
+if (WIN32)
+    target_link_libraries(main PUBLIC )
+endif (WIN32)
+if (UNIX)
+    target_link_libraries(main PUBLIC vulkan dl X11)
+endif (UNIX)
+
+target_include_directories(main PUBLIC
+    ${PROJECT_SOURCE_DIR}/include/
+    ${PROJECT_SOURCE_DIR}/include/ListOfVulkanFunctions.inl
+)
