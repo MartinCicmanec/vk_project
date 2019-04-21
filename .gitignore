@@ -10,6 +10,5 @@ install_manifest.txt
 compile_commands.json
 CTestTestfile.cmake
 vgcore.*
-vk_layer_settings.txt
 .vscode
 lib

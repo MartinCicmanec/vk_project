@@ -23,34 +23,14 @@
 // Author:   Pawel Lapinski
 // LinkedIn: https://www.linkedin.com/in/pawel-lapinski-84522329
 //
-// Chapter: 01 Instance and Devices
-// Recipe:  07 Checking available Instance extensions
+// Common
 
-#include "common.h"
+#include "Common.h"
 
 namespace VulkanCookbook {
 
-  /*bool CheckAvailableInstanceExtensions(std::vector<VkExtensionProperties> & available_extensions) {
-    uint32_t extensions_count = 0;
-    VkResult result = VK_SUCCESS;
-
-    result = VulkanCookbook::vkEnumerateInstanceExtensionProperties( nullptr, &extensions_count, nullptr );
-    if( (result != VK_SUCCESS) || (extensions_count == 0) ) {
-      std::cout << "Could not get the number of instance extensions." << std::endl;
-      return false;
-    }
-
-    available_extensions.resize( extensions_count );
-    result = VulkanCookbook::vkEnumerateInstanceExtensionProperties( nullptr, &extensions_count, available_extensions.data() );
-    if( (result != VK_SUCCESS) || (extensions_count == 0) ) {
-      std::cout << "Could not enumerate instance extensions." << std::endl;
-      return false;
-    }
-
-    return true;
-  }*/
-
-  bool IsExtensionSupported( std::vector<VkExtensionProperties> const & available_extensions, char const * const extension ) {
+  bool IsExtensionSupported( std::vector<VkExtensionProperties> const & available_extensions,
+                             char const * const                         extension ) {
     for( auto & available_extension : available_extensions ) {
       if( strstr( available_extension.extensionName, extension ) ) {
         return true;
@@ -58,4 +38,5 @@ namespace VulkanCookbook {
     }
     return false;
   }
+
 } // namespace VulkanCookbook
