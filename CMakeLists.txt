@@ -25,9 +25,10 @@ endif()
 #add_custom_command(TARGET main PRE_BUILD COMMAND export VK_INSTANCE_LAYERS=VK_LAYER_LUNARG_standard_validation:VK_LAYER_LUNARG_api_dump:VK_LAYER_LUNARG_core_validation)
 #set(ENV{VK_INSTANCE_LAYERS} VK_INSTANCE_LAYERS=VK_LAYER_LUNARG_standard_validation:VK_LAYER_LUNARG_api_dump:VK_LAYER_LUNARG_core_validation)
 
-execute_process (
-    COMMAND export "VK_INSTANCE_LAYERS=VK_LAYER_LUNARG_standard_validation:VK_LAYER_LUNARG_api_dump:VK_LAYER_LUNARG_core_validation"
-)
+#execute_process (
+#    COMMAND export "VK_INSTANCE_LAYERS=VK_LAYER_LUNARG_standard_validation:VK_LAYER_LUNARG_api_dump:VK_LAYER_LUNARG_core_validation"
+#)
+EXECUTE_PROCESS(COMMAND sh -c "export VK_INSTANCE_LAYERS=VK_LAYER_LUNARG_standard_validation:VK_LAYER_LUNARG_api_dump:VK_LAYER_LUNARG_core_validation")
 
 message("Environment variable: $ENV{VK_INSTANCE_LAYERS}")
 

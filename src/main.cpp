@@ -161,6 +161,25 @@ int main(){
 		std::cout << "Could not connect with a Vulkan Runtime library." << std::endl;
 	}
 
+	// Checking available Instance extensions
+	uint32_t extensions_count = 0;
+	VkResult result = VK_SUCCESS;
+
+	result = vkEnumerateInstanceExtensionProperties( nullptr, &extensions_count, nullptr );
+	if( (result != VK_SUCCESS) || (extensions_count == 0) ) {
+		std::cout << "Could not get the number of Instance extensions." << std::endl;
+		return false;
+	}
+
+	std::vector<VkExtensionProperties> available_extensions;
+	available_extensions.resize(extensions_count);
+
+	result = vkEnumerateInstanceExtensionProperties( nullptr, &extensions_count, &available_extensions[0] );
+	if ( (result != VK_SUCCESS) || (extensions_count == 0) ) {
+		std::cout << "Could not enumerate Instance extensions." << std::endl;
+		return false;
+	}
+
 	std::cin.ignore();
 	return 0;
 }
