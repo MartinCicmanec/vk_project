@@ -180,6 +180,22 @@ int main(){
 		return false;
 	}
 
+	for( auto & available_extension : available_extensions ) {
+		std::cout << available_extension.extensionName << std::endl;
+    }
+
+	VkInstance instance;
+	std::vector<char const*> const desired_extensions = {
+		"VK_KHR_device_group_creation", 
+		"VK_KHR_get_display_properties2",
+		"VK_KHR_get_physical_device_properties2",
+		"VK_KHR_get_surface_capabilities2",
+		"VK_KHR_surface",
+		"VK_KHR_display"
+		};
+
+	bool bResult = VulkanCookbook::CreateVulkanInstance(desired_extensions, "VulkanTest", instance);
+
 	std::cin.ignore();
 	return 0;
 }
