@@ -26,8 +26,20 @@
 // Chapter: 01 Instance and Devices
 // Recipe:  05 Loading function exported from a Vulkan Loader library
 
+// https://vulkan-tutorial.com/Drawing_a_triangle/Setup/Validation_layers
+
 #include "main.h"
 #include "ListOfVulkanFunctions.inl"
+
+const std::vector<const char*> validationLayers = {
+    "VK_LAYER_KHRONOS_validation"
+};
+
+#ifdef NDEBUG
+    const bool enableValidationLayers = false;
+#else
+    const bool enableValidationLayers = true;
+#endif
 
 namespace VulkanCookbook {
 
@@ -186,7 +198,7 @@ int main(){
 
 	VkInstance instance;
 	std::vector<char const*> const desired_extensions = {
-		"VK_KHR_device_group_creation", 
+		"VK_KHR_device_group_creation",
 		"VK_KHR_get_display_properties2",
 		"VK_KHR_get_physical_device_properties2",
 		"VK_KHR_get_surface_capabilities2",
