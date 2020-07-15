@@ -35,13 +35,34 @@ const std::vector<const char*> validationLayers = {
     "VK_LAYER_KHRONOS_validation"
 };
 
-#ifdef NDEBUG
-    const bool enableValidationLayers = false;
-#else
-    const bool enableValidationLayers = true;
-#endif
+//#ifdef NDEBUG
+//    const bool enableValidationLayers = false;
+//#else
+//    const bool enableValidationLayers = true;
+//#endif
+const bool enableValidationLayers = true;
 
 namespace VulkanCookbook {
+
+	bool EnumerateAvailablePhysicalDevices( VkInstance instance, std::vector<VkPhysicalDevice> & available_devices ) {
+		uint32_t devices_count = 0;
+		VkResult result = VK_SUCCESS;
+
+		result = vkEnumeratePhysicalDevices( instance, &devices_count, nullptr );
+		if( (result != VK_SUCCESS) || (devices_count == 0) ) {
+			std::cout << "Could not get the number of available physical devices." << std::endl;
+			return false;
+		}
+
+		available_devices.resize( devices_count );
+		result = vkEnumeratePhysicalDevices( instance, &devices_count, available_devices.data() );
+		if( (result != VK_SUCCESS) || (devices_count == 0) ) {
+			std::cout << "Could not enumerate physical devices." << std::endl;
+			return false;
+		}
+
+		return true;
+	}
 
 	bool LoadFunctionExportedFromVulkanLoaderLibrary( LIBRARY_TYPE const & vulkan_library ) {
 	#if defined _WIN32
@@ -77,19 +98,17 @@ namespace VulkanCookbook {
 		uint32_t extensions_count = 0;
 		VkResult result = VK_SUCCESS;
 
+		std::cout << "Middle" << std::endl;
 		result = vkEnumerateInstanceExtensionProperties( nullptr, &extensions_count, nullptr );
-		if( (result != VK_SUCCESS) ||
-			(extensions_count == 0) ) {
-		std::cout << "Could not get the number of instance extensions." << std::endl;
-		return false;
+		if( (result != VK_SUCCESS) || (extensions_count == 0) ) {
+			std::cout << "Could not get the number of instance extensions." << std::endl;
+			return false;
 		}
-
 		available_extensions.resize( extensions_count );
-		result = vkEnumerateInstanceExtensionProperties( nullptr, &extensions_count, available_extensions.data() );
-		if( (result != VK_SUCCESS) ||
-			(extensions_count == 0) ) {
-		std::cout << "Could not enumerate instance extensions." << std::endl;
-		return false;
+		result = vkEnumerateInstanceExtensionProperties( nullptr, &extensions_count, &available_extensions[0] );
+		if( (result != VK_SUCCESS) || (extensions_count == 0) ) {
+			std::cout << "Could not enumerate instance extensions." << std::endl;
+			return false;
 		}
 
 		return true;
@@ -98,6 +117,7 @@ namespace VulkanCookbook {
 	bool CreateVulkanInstance( std::vector<char const *> const & desired_extensions,
 								char const * const                application_name,
 								VkInstance                      & instance ) {
+		
 		std::vector<VkExtensionProperties> available_extensions;
 		if( !CheckAvailableInstanceExtensions( available_extensions ) ) {
 			return false;
@@ -196,17 +216,24 @@ int main(){
 		std::cout << available_extension.extensionName << std::endl;
     }
 
-	VkInstance instance;
+	VkInstance instance = NULL;
+	//https://stackoverflow.com/questions/44993486/convert-stdvectorstdstring-to-const-char-const
 	std::vector<char const*> const desired_extensions = {
 		"VK_KHR_device_group_creation",
 		"VK_KHR_get_display_properties2",
 		"VK_KHR_get_physical_device_properties2",
 		"VK_KHR_get_surface_capabilities2",
 		"VK_KHR_surface",
-		"VK_KHR_display"
+		"VK_KHR_display",
+		"VK_EXT_debug_report",
+		"VK_EXT_debug_utils"
 		};
 
-	bool bResult = VulkanCookbook::CreateVulkanInstance(desired_extensions, "VulkanTest", instance);
+
+
+	bool bResult = VulkanCookbook::CreateVulkanInstance(desired_extensions, "Test", instance);
+
+	//VulkanCookbook::vkDestroyInstance(instance, nullptr);
 
 	std::cin.ignore();
 	return 0;
