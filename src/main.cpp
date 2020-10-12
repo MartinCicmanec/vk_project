@@ -220,7 +220,7 @@ int main(){
     }
 
 	VkInstance instance = NULL;
-	//https://stackoverflow.com/questions/44993486/convert-stdvectorstdstring-to-const-char-const
+	
 	std::vector<char const*> const desired_extensions = {
 		"VK_KHR_device_group_creation",
 		"VK_KHR_get_display_properties2",
@@ -267,13 +267,8 @@ int main(){
 		return false;
 	}
 
-
-
-
-	//bool bResult = VulkanCookbook::CreateVulkanInstance({}, "Test\0", instance);
-
-	//VulkanCookbook::vkDestroyInstance(instance, nullptr);
-
 	std::cin.ignore();
+
+	VulkanCookbook::vkDestroyInstance(instance, nullptr);
 	return 0;
 }
