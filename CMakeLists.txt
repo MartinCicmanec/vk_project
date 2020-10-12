@@ -3,7 +3,7 @@ cmake_minimum_required (VERSION 3.10.1)
 set(CMAKE_VERBOSE_MAKEFILE 0)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_SUPPRESS_REGENERATION true)
-#project(vk_project)
+project(vk_project)
 # The version number.
 set(PROJECT_VERSION_MAJOR 1)
 set(PROJECT_VERSION_MINOR 0)
@@ -23,12 +23,12 @@ endif()
 #SET(export_args "VK_INSTANCE_LAYERS=VK_LAYER_LUNARG_standard_validation:VK_LAYER_LUNARG_api_dump:VK_LAYER_LUNARG_core_validation")
 #execute_process(COMMAND export VK_INSTANCE_LAYERS=VK_LAYER_LUNARG_standard_validation:VK_LAYER_LUNARG_api_dump:VK_LAYER_LUNARG_core_validation )
 #add_custom_command(TARGET main PRE_BUILD COMMAND export VK_INSTANCE_LAYERS=VK_LAYER_LUNARG_standard_validation:VK_LAYER_LUNARG_api_dump:VK_LAYER_LUNARG_core_validation)
-set(ENV{VK_INSTANCE_LAYERS} VK_INSTANCE_LAYERS=VK_LAYER_LUNARG_standard_validation:VK_LAYER_LUNARG_api_dump:VK_LAYER_LUNARG_core_validation)
+###set(ENV{VK_INSTANCE_LAYERS} VK_INSTANCE_LAYERS=VK_LAYER_LUNARG_standard_validation:VK_LAYER_LUNARG_api_dump:VK_LAYER_LUNARG_core_validation)
 
 #execute_process (
 #    COMMAND export "VK_INSTANCE_LAYERS=VK_LAYER_LUNARG_standard_validation:VK_LAYER_LUNARG_api_dump:VK_LAYER_LUNARG_core_validation"
 #)
-EXECUTE_PROCESS(COMMAND sh -c "export VK_INSTANCE_LAYERS=VK_LAYER_LUNARG_standard_validation:VK_LAYER_LUNARG_api_dump:VK_LAYER_LUNARG_core_validation")
+###EXECUTE_PROCESS(COMMAND sh -c "export VK_INSTANCE_LAYERS=VK_LAYER_LUNARG_standard_validation:VK_LAYER_LUNARG_api_dump:VK_LAYER_LUNARG_core_validation")
 
 message("Environment variable: $ENV{VK_INSTANCE_LAYERS}")
 
@@ -59,23 +59,28 @@ add_definitions( -DVK_USE_PLATFORM_${VK_USE_PLATFORM}_KHR )
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/bin)
 
+message(STATUS "Debug? ${CMAKE_BUILD_TYPE}")
+
 find_package(Vulkan REQUIRED)
+message(STATUS "Vulkan found lib: Core=${Vulkan_LIBRARIES} version=${Vulkan_VERSION}")
+
+find_package(glfw3 REQUIRED)
+message(STATUS "glfw3 found lib: Core=${glfw3_LIBRARIES} version=${glfw3_VERSION}")
 
 file(GLOB MAIN_SOURCES "src/*.cpp")
 file(GLOB HEADER_FILES "include/*.h" "include/*.inl")
 
 add_executable(main ${MAIN_SOURCES})
 
-
-
 if (WIN32)
     target_link_libraries(main PUBLIC )
 endif (WIN32)
 if (UNIX)
-    target_link_libraries(main PUBLIC ${PLATFORM_LIBRARY} vulkan dl X11)
+    target_link_libraries(main PUBLIC ${PLATFORM_LIBRARY} vulkan dl X11 glfw)
 endif (UNIX)
 
 target_include_directories(main PUBLIC
     ${PROJECT_SOURCE_DIR}/include/
 	${PROJECT_SOURCE_DIR}/include/*.inl
 )
+
