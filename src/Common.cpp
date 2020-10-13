@@ -27,9 +27,6 @@
 
 #include "Common.h"
 
-namespace VulkanCookbook {
-
-
   bool LoadFunctionExportedFromVulkanLoaderLibrary( LIBRARY_TYPE const & vulkan_library ) {
   #if defined _WIN32
   #define LoadFunction GetProcAddress
@@ -79,9 +76,6 @@ namespace VulkanCookbook {
     }
     return false;
   }
-  
-
-} // namespace VulkanCookbook
 
 VKAPI_ATTR VkBool32 VKAPI_CALL MyDebugReportCallback(
       VkDebugReportFlagsEXT       flags,

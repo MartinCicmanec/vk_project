@@ -34,8 +34,6 @@
 
 #include "vulkan.h"
 
-namespace VulkanCookbook {
-
 #define EXPORTED_VULKAN_FUNCTION( name ) extern PFN_##name name;
 #define GLOBAL_LEVEL_VULKAN_FUNCTION( name ) extern PFN_##name name;
 #define INSTANCE_LEVEL_VULKAN_FUNCTION( name ) extern PFN_##name name;
@@ -45,6 +43,5 @@ namespace VulkanCookbook {
 
 #include "ListOfVulkanFunctions.inl"
 
-} // namespace VulkanCookbook
 
 #endif // VULKAN_FUNCTIONS

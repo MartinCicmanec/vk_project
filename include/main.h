@@ -22,12 +22,9 @@
 //
 // Author:   Pawel Lapinski
 // LinkedIn: https://www.linkedin.com/in/pawel-lapinski-84522329
-//
-// Chapter: 01 Instance and Devices
-// Recipe:  05 Loading function exported from a Vulkan Loader library
 
-#ifndef LOADING_FUNCTION_EXPORTED_FROM_A_VULKAN_LOADER_LIBRARY
-#define LOADING_FUNCTION_EXPORTED_FROM_A_VULKAN_LOADER_LIBRARY
+#ifndef MY_TEST
+#define MY_TEST
 
 #include "Common.h"
 #include <vector>
@@ -37,29 +34,37 @@
 #include <cstring>
 #include <cstdlib>
 
-bool lf_result = VulkanCookbook::LoadGlobalLevelFunctions();
+#define EXPORTED_VULKAN_FUNCTION( name ) extern PFN_##name name;
+#define GLOBAL_LEVEL_VULKAN_FUNCTION( name ) extern PFN_##name name;
+#define INSTANCE_LEVEL_VULKAN_FUNCTION( name ) extern PFN_##name name;
+#define INSTANCE_LEVEL_VULKAN_FUNCTION_FROM_EXTENSION( name, extension ) extern PFN_##name name;
+#define DEVICE_LEVEL_VULKAN_FUNCTION( name ) extern PFN_##name name;
+#define DEVICE_LEVEL_VULKAN_FUNCTION_FROM_EXTENSION( name, extension ) extern PFN_##name name;
+
+bool lf_result = LoadGlobalLevelFunctions();
 
 void* vulkan_library = dlopen("libvulkan.so.1", RTLD_NOW);
 
-bool lfefvll_result = VulkanCookbook::LoadFunctionExportedFromVulkanLoaderLibrary( vulkan_library);
+bool lfefvll_result = LoadFunctionExportedFromVulkanLoaderLibrary( vulkan_library);
 
 PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr = (PFN_vkGetInstanceProcAddr) dlsym(vulkan_library, "vkGetInstanceProcAddr");
 PFN_vkEnumerateInstanceExtensionProperties vkEnumerateInstanceExtensionProperties = (PFN_vkEnumerateInstanceExtensionProperties) vkGetInstanceProcAddr( nullptr, "vkEnumerateInstanceExtensionProperties" );
 PFN_vkEnumerateInstanceLayerProperties vkEnumerateInstanceLayerProperties = (PFN_vkEnumerateInstanceLayerProperties) vkGetInstanceProcAddr( nullptr, "vkEnumerateInstanceLayerProperties" );
 PFN_vkCreateInstance vkCreateInstance = (PFN_vkCreateInstance) vkGetInstanceProcAddr( nullptr, "vkCreateInstance" );
 PFN_vkDestroyInstance vkDestroyInstance = (PFN_vkDestroyInstance) vkGetInstanceProcAddr(nullptr, "vkDestroyInstance");
+PFN_vkEnumeratePhysicalDevices vkEnumeratePhysicalDevices = (PFN_vkEnumeratePhysicalDevices) vkGetInstanceProcAddr(nullptr, "vkEnumeratePhysicalDevices");
+PFN_vkGetPhysicalDeviceProperties vkGetPhysicalDeviceProperties = (PFN_vkGetPhysicalDeviceProperties) vkGetInstanceProcAddr(nullptr, "vkGetPhysicalDeviceProperties");
+//PFN_vkEnumerateDeviceProperties vkEnumerateDeviceProperties = (PFN_vkEnumerateDeviceProperties) vkGetInstanceProcAddr(nullptr, "vkEnumerateDeviceProperties");
+//PFN_vkEnumeratePhysicalDeviceProperties vkEnumeratePhysicalDeviceProperties = (PFN_vkEnumeratePhysicalDeviceProperties) vkGetInstanceProcAddr(nullptr, "vkEnumeratePhysicalDeviceProperties");
 
-namespace VulkanCookbook {
 
-    bool EnumerateAvailablePhysicalDevices( VkInstance instance, std::vector<VkPhysicalDevice> & available_devices );
-    bool CreateVulkanInstance( std::vector<char const *> const & desired_extensions,
-                            char const * const                application_name,
-                            VkInstance & instance );
-
-} // namespace VulkanCookbook
+bool EnumerateAvailablePhysicalDevices( VkInstance instance, std::vector<VkPhysicalDevice> &available_devices );
+bool CreateVulkanInstance( std::vector<char const *> const & desired_extensions,
+                        char const * const                application_name,
+                        VkInstance & instance );
 
 bool CheckAvailableInstanceLayers(std::vector<VkLayerProperties> &available_layers);
 bool CheckAvailableInstanceExtensions(std::vector<VkExtensionProperties> &available_extensions);
 
 
-#endif // LOADING_FUNCTION_EXPORTED_FROM_A_VULKAN_LOADER_LIBRARY
+#endif

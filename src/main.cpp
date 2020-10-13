@@ -36,74 +36,80 @@
     const bool enableValidationLayers = true;
 #endif
 
-namespace VulkanCookbook {
 
-    bool EnumerateAvailablePhysicalDevices( VkInstance instance, std::vector<VkPhysicalDevice> & available_devices ) {
-        uint32_t devices_count = 0;
-        VkResult result = VK_SUCCESS;
+bool EnumerateAvailablePhysicalDevices( VkInstance instance, std::vector<VkPhysicalDevice> &available_devices ) {
+    uint32_t devices_count = 0;
+    VkResult result = VK_SUCCESS;
 
-        result = vkEnumeratePhysicalDevices( instance, &devices_count, nullptr );
-        if( (result != VK_SUCCESS) || (devices_count == 0) ) {
-            std::cout << "Could not get the number of available physical devices." << std::endl;
-            return false;
-        }
-
-        available_devices.resize( devices_count );
-        result = vkEnumeratePhysicalDevices( instance, &devices_count, available_devices.data() );
-        if( (result != VK_SUCCESS) || (devices_count == 0) ) {
-            std::cout << "Could not enumerate physical devices." << std::endl;
-            return false;
-        }
-
-        return true;
+    result = vkEnumeratePhysicalDevices( NULL, &devices_count, nullptr );
+    if( (result != VK_SUCCESS) || (devices_count == 0) ) {
+        std::cout << "Could not get the number of available physical devices." << std::endl;
+        return false;
     }
 
-    bool CreateVulkanInstance( std::vector<char const *> const & desired_extensions,
-                                char const * const                application_name,
-                                VkInstance                      & instance ) {
-        
-        std::vector<VkExtensionProperties> available_extensions = {};
-        if( !CheckAvailableInstanceExtensions( available_extensions ) ) {
-            return false;
-        }
-
-        for( auto & extension : desired_extensions ) {
-            if( !IsExtensionSupported( available_extensions, extension ) ) {
-                std::cout << "Extension named '" << extension << "' is not supported by an Instance object." << std::endl;
-                return false;
-            }
-        }
-
-        VkApplicationInfo application_info = {
-            VK_STRUCTURE_TYPE_APPLICATION_INFO,                 // VkStructureType           sType
-            nullptr,                                            // const void              * pNext
-            application_name,                                   // const char              * pApplicationName
-            VK_MAKE_VERSION( 1, 0, 0 ),                         // uint32_t                  applicationVersion
-            "Vulkan Cookbook",                                  // const char              * pEngineName
-            VK_MAKE_VERSION( 1, 0, 0 ),                         // uint32_t                  engineVersion
-            VK_MAKE_VERSION( 1, 0, 0 )                          // uint32_t                  apiVersion
-        };
-
-        VkInstanceCreateInfo instance_create_info = {
-            VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,             // VkStructureType           sType
-            nullptr,                                            // const void              * pNext
-            0,                                                  // VkInstanceCreateFlags     flags
-            &application_info,                                  // const VkApplicationInfo * pApplicationInfo
-            0,                                                  // uint32_t                  enabledLayerCount
-            nullptr,                                            // const char * const      * ppEnabledLayerNames
-            static_cast<uint32_t>(desired_extensions.size()),   // uint32_t                  enabledExtensionCount
-            desired_extensions.data()                           // const char * const      * ppEnabledExtensionNames
-        };
-
-        VkResult result = vkCreateInstance( &instance_create_info, nullptr, &instance );
-        if( (result != VK_SUCCESS) || (instance == VK_NULL_HANDLE) ) {
-            std::cout << "Could not create Vulkan instance." << std::endl;
-            return false;
-        }
-
-        return true;
+    available_devices.resize( devices_count );
+    result = vkEnumeratePhysicalDevices( NULL, &devices_count, available_devices.data() );
+    if( (result != VK_SUCCESS) || (devices_count == 0) ) {
+        std::cout << "Could not enumerate physical devices." << std::endl;
+        return false;
     }
-} // namespace VulkanCookbook
+    
+    std::cout << "Devices : " << std::endl;
+    for( auto & available_device : available_devices ) {
+        VkPhysicalDeviceProperties deviceProperties;
+        vkGetPhysicalDeviceProperties(available_device, &deviceProperties);
+        std::cout << "\t" << deviceProperties.deviceName << std::endl;
+        delete &deviceProperties;
+    }
+
+    return true;
+}
+
+bool CreateVulkanInstance( std::vector<char const *> const & desired_extensions,
+                            char const * const                application_name,
+                            VkInstance                      & instance ) {
+    
+    std::vector<VkExtensionProperties> available_extensions = {};
+    if( !CheckAvailableInstanceExtensions( available_extensions ) ) {
+        return false;
+    }
+
+    for( auto & extension : desired_extensions ) {
+        if( !IsExtensionSupported( available_extensions, extension ) ) {
+            std::cout << "Extension named '" << extension << "' is not supported by an Instance object." << std::endl;
+            return false;
+        }
+    }
+
+    VkApplicationInfo application_info = {
+        VK_STRUCTURE_TYPE_APPLICATION_INFO,                 // VkStructureType           sType
+        nullptr,                                            // const void              * pNext
+        application_name,                                   // const char              * pApplicationName
+        VK_MAKE_VERSION( 1, 0, 0 ),                         // uint32_t                  applicationVersion
+        "Vulkan Cookbook",                                  // const char              * pEngineName
+        VK_MAKE_VERSION( 1, 0, 0 ),                         // uint32_t                  engineVersion
+        VK_MAKE_VERSION( 1, 0, 0 )                          // uint32_t                  apiVersion
+    };
+
+    VkInstanceCreateInfo instance_create_info = {
+        VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,             // VkStructureType           sType
+        nullptr,                                            // const void              * pNext
+        0,                                                  // VkInstanceCreateFlags     flags
+        &application_info,                                  // const VkApplicationInfo * pApplicationInfo
+        0,                                                  // uint32_t                  enabledLayerCount
+        nullptr,                                            // const char * const      * ppEnabledLayerNames
+        static_cast<uint32_t>(desired_extensions.size()),   // uint32_t                  enabledExtensionCount
+        desired_extensions.data()                           // const char * const      * ppEnabledExtensionNames
+    };
+
+    VkResult result = vkCreateInstance( &instance_create_info, nullptr, &instance );
+    if( (result != VK_SUCCESS) || (instance == VK_NULL_HANDLE) ) {
+        std::cout << "Could not create Vulkan instance." << std::endl;
+        return false;
+    }
+
+    return true;
+}
 
 bool CheckAvailableInstanceExtensions(std::vector<VkExtensionProperties> &available_extensions) {
     uint32_t extensions_count = 0;
@@ -170,6 +176,14 @@ int main(){
         std::cout << "Could not connect with a Vulkan Runtime library." << std::endl;
     }
 
+    if(vkEnumeratePhysicalDevices == nullptr) {
+        std::cout << "Could not load vkEnumeratePhysicalDevices." << std::endl;
+    }
+
+    if(vkGetPhysicalDeviceProperties == nullptr) {
+        std::cout << "Could not load vkGetPhysicalDeviceProperties." << std::endl;
+    }
+
     if(vkDestroyInstance == nullptr) {
         std::cout << "Could not load vkDestroyInstance." << std::endl;
     }
@@ -197,7 +211,7 @@ int main(){
 
 
     for( auto & extension : desired_extensions ) {
-        if( !VulkanCookbook::IsExtensionSupported( available_extensions, extension ) ) {
+        if( !IsExtensionSupported( available_extensions, extension ) ) {
             std::cout << "Extension named '" << extension << "' is not supported by an Instance object." << std::endl;
             return false;
         }
@@ -210,7 +224,7 @@ int main(){
     };
 
     for( auto & layer : desired_layers ) {
-        if( !VulkanCookbook::IsLayerSupported( available_layers, layer ) ) {
+        if( !IsLayerSupported( available_layers, layer ) ) {
             std::cout << "Layer named '" << layer << "' is not supported by an Instance object." << std::endl;
             return false;
         }
@@ -247,6 +261,8 @@ int main(){
     PFN_vkCreateDebugReportCallbackEXT vkCreateDebugReportCallbackEXT = (PFN_vkCreateDebugReportCallbackEXT) vkGetInstanceProcAddr(instance, "vkCreateDebugReportCallbackEXT");
     PFN_vkDebugReportMessageEXT vkDebugReportMessageEXT = (PFN_vkDebugReportMessageEXT) vkGetInstanceProcAddr(instance, "vkDebugReportMessageEXT");
     PFN_vkDestroyDebugReportCallbackEXT vkDestroyDebugReportCallbackEXT = (PFN_vkDestroyDebugReportCallbackEXT) vkGetInstanceProcAddr(instance, "vkDestroyDebugReportCallbackEXT");
+    PFN_vkEnumeratePhysicalDevices vkEnumeratePhysicalDevices = (PFN_vkEnumeratePhysicalDevices) vkGetInstanceProcAddr(instance, "vkEnumeratePhysicalDevices");
+    PFN_vkGetPhysicalDeviceProperties vkGetPhysicalDeviceProperties = (PFN_vkGetPhysicalDeviceProperties) vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceProperties");
 
     VkDebugReportCallbackCreateInfoEXT callbackCreateInfo;
     callbackCreateInfo.sType       = VK_STRUCTURE_TYPE_DEBUG_REPORT_CREATE_INFO_EXT;
@@ -264,6 +280,23 @@ int main(){
         std::cout << "Could not create debug callback." << std::endl;
         return false;
     };
+
+    std::vector<VkPhysicalDevice> available_devices;
+    //EnumerateAvailablePhysicalDevices(instance, available_devices);
+    uint32_t devices_count = 0;
+    result = vkEnumeratePhysicalDevices( instance, &devices_count, nullptr );
+
+    std::cout << "device count : " << devices_count << std::endl;
+    
+    available_devices.resize( devices_count );
+    result = vkEnumeratePhysicalDevices( instance, &devices_count, available_devices.data() );
+    
+    for( auto & available_device : available_devices ) {
+        VkPhysicalDeviceProperties deviceProperties;
+        vkGetPhysicalDeviceProperties(available_device, &deviceProperties);
+        std::cout << "\t" << deviceProperties.deviceName << std::endl;
+        //delete &deviceProperties;
+    }
     std::cin.ignore();
     
     vkDestroyInstance(instance, nullptr);

@@ -49,9 +49,9 @@
 #include <memory>
 #include "VulkanDestroyer.h"
 
-namespace VulkanCookbook {
+//namespace VulkanCookbook {
 
-  // Vulkan library type
+
 #ifdef _WIN32
 #define LIBRARY_TYPE HMODULE
 #elif defined __linux
@@ -87,7 +87,6 @@ namespace VulkanCookbook {
   bool IsLayerSupported( std::vector<VkLayerProperties> const & available_layers,
                              char const * const                         layer );
 
-} // namespace VulkanCookbook
 
 VKAPI_ATTR VkBool32 VKAPI_CALL MyDebugReportCallback(
       VkDebugReportFlagsEXT       flags,
