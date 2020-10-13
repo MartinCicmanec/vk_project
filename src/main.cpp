@@ -29,17 +29,6 @@
 // https://vulkan-tutorial.com/Drawing_a_triangle/Setup/Validation_layers
 
 #include "main.h"
-#include "ListOfVulkanFunctions.inl"
-#include <iostream>
-#include <stdexcept>
-#include <vector>
-#include <cstring>
-#include <cstdlib>
-
-std::vector<char const*> const validationLayers = {
-    "VK_LAYER_LUNARG_standard_validation"
-};
-
 
 #ifdef NDEBUG
     const bool enableValidationLayers = false;
@@ -65,57 +54,6 @@ namespace VulkanCookbook {
             std::cout << "Could not enumerate physical devices." << std::endl;
             return false;
         }
-
-        return true;
-    }
-
-    bool LoadFunctionExportedFromVulkanLoaderLibrary( LIBRARY_TYPE const & vulkan_library ) {
-    #if defined _WIN32
-    #define LoadFunction GetProcAddress
-    #elif defined __linux
-    #define LoadFunction dlsym
-    #endif
-
-    #define EXPORTED_VULKAN_FUNCTION( name )                              \
-        name = (PFN_##name)LoadFunction( vulkan_library, #name );         \
-        if( name == nullptr ) {                                           \
-        std::cout << "Could not load exported Vulkan function named: "  \
-            #name << std::endl;                                           \
-        return false;                                                   \
-        }
-
-        return true;
-    }
-
-    bool LoadGlobalLevelFunctions() {
-    #define GLOBAL_LEVEL_VULKAN_FUNCTION( name )                              \
-        name = (PFN_##name)vkGetInstanceProcAddr( nullptr, #name );           \
-        if( name == nullptr ) {                                               \
-        std::cout << "Could not load global level Vulkan function named: "  \
-            #name << std::endl;                                               \
-        return false;                                                       \
-        }
-
-        return true;
-    }
-
-    bool CheckAvailableInstanceExtensions( std::vector<VkExtensionProperties> & available_extensions ) {
-        uint32_t extensions_count = 0;
-        VkResult result = VK_SUCCESS;
-
-        std::cout << "Middle" << std::endl;
-        result = vkEnumerateInstanceExtensionProperties( NULL, &extensions_count, nullptr );
-        if( (result != VK_SUCCESS) || (extensions_count == 0) ) {
-            std::cout << "Could not get the number of instance extensions." << std::endl;
-            return false;
-        };
-        std::cout << "Middle 2" << std::endl;
-        available_extensions.resize( extensions_count );
-        result = vkEnumerateInstanceExtensionProperties( NULL, &extensions_count, &available_extensions[0] );
-        if( (result != VK_SUCCESS) || (extensions_count == 0) ) {
-            std::cout << "Could not enumerate instance extensions." << std::endl;
-            return false;
-        };
 
         return true;
     }
@@ -165,96 +103,84 @@ namespace VulkanCookbook {
 
         return true;
     }
-
-    bool checkValidationLayerSupport(std::vector<const char*> & desiredLayers) {
-        uint32_t layerCount;
-        vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
-
-        std::vector<VkLayerProperties> availableLayers(layerCount);
-        vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
-
-        for (const auto& layerProperties : availableLayers) {
-            std::cout << layerProperties.layerName << std::endl;
-        }
-
-        for (const char* layerName : desiredLayers) {
-            bool layerFound = false;
-
-            for (const auto& layerProperties : availableLayers) {
-                if (strcmp(layerName, layerProperties.layerName) == 0) {
-                    layerFound = true;
-                    break;
-                }
-            }
-
-            if (!layerFound) {
-                std::cout << "Missing validation layer." << std::endl;
-                return false;
-            }
-        }
-
-
-        return true;
-}
-
 } // namespace VulkanCookbook
 
+bool CheckAvailableInstanceExtensions(std::vector<VkExtensionProperties> &available_extensions) {
+    uint32_t extensions_count = 0;
+    VkResult result = VK_SUCCESS;
+
+    std::cout << "Available instance extensions:" << std::endl;
+
+    result = vkEnumerateInstanceExtensionProperties( NULL, &extensions_count, nullptr );
+    if( (result != VK_SUCCESS) || (extensions_count == 0) ) {
+        std::cout << "Could not get the number of instance extensions." << std::endl;
+        return false;
+    };
+
+    available_extensions.resize( extensions_count );
+    result = vkEnumerateInstanceExtensionProperties( NULL, &extensions_count, &available_extensions[0] );
+    if( (result != VK_SUCCESS) || (extensions_count == 0) ) {
+        std::cout << "Could not enumerate instance extensions." << std::endl;
+        return false;
+    };
+
+    for( auto & available_extension : available_extensions ) {
+        std::cout << "\t" << available_extension.extensionName << std::endl;
+    }
+
+    return true;
+}
+
+bool CheckAvailableInstanceLayers(std::vector<VkLayerProperties> &available_layers) {
+    uint32_t layer_count = 0;
+    VkResult result = VK_SUCCESS;
+
+    std::cout << "Available instance layers:" << std::endl;
+
+    result = vkEnumerateInstanceLayerProperties( &layer_count, nullptr );
+    if( (result != VK_SUCCESS) || (layer_count == 0) ) {
+        std::cout << "Could not get the number of Instance layers." << std::endl;
+        return false;
+    }
+
+    available_layers.resize(layer_count);
+
+    result = vkEnumerateInstanceLayerProperties( &layer_count, &available_layers[0] );
+    if ( (result != VK_SUCCESS) || (layer_count == 0) ) {
+        std::cout << "Could not enumerate Instance layers." << std::endl;
+        return false;
+    }
+
+    for ( auto & available_layer : available_layers ) {
+        std::cout << "\t" << available_layer.layerName << std::endl;
+    }
+    return true;
+}
+
+
 int main(){
-
-    VulkanCookbook::LoadGlobalLevelFunctions();
-
-    void* vulkan_library;
-    vulkan_library = dlopen("libvulkan.so.1", RTLD_NOW);
-
-    VulkanCookbook::LoadFunctionExportedFromVulkanLoaderLibrary( vulkan_library);
 
     if( vulkan_library == nullptr ) {
         std::cout << "Could not connect with a Vulkan Runtime library." << std::endl;
     }
-
-    PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr;
-    vkGetInstanceProcAddr = (PFN_vkGetInstanceProcAddr) dlsym(vulkan_library, "vkGetInstanceProcAddr");
-
     if( vkGetInstanceProcAddr == nullptr ) {
         std::cout << "Could not connect with a Vulkan Runtime library." << std::endl;
     }
-
-    PFN_vkEnumerateInstanceExtensionProperties vkEnumerateInstanceExtensionProperties;
-    PFN_vkEnumerateInstanceLayerProperties vkEnumerateInstanceLayerProperties;
-
-    PFN_vkCreateInstance vkCreateInstance;
-    vkEnumerateInstanceExtensionProperties = (PFN_vkEnumerateInstanceExtensionProperties) vkGetInstanceProcAddr( nullptr, "vkEnumerateInstanceExtensionProperties" );
-    vkEnumerateInstanceLayerProperties = (PFN_vkEnumerateInstanceLayerProperties) vkGetInstanceProcAddr( nullptr, "vkEnumerateInstanceLayerProperties" );
-    vkCreateInstance = (PFN_vkCreateInstance) vkGetInstanceProcAddr( nullptr, "vkCreateInstance" );
-
-    if( vkEnumerateInstanceExtensionProperties == nullptr ) {
+    if( (vkEnumerateInstanceExtensionProperties == nullptr) || (vkEnumerateInstanceLayerProperties == nullptr) ) {
         std::cout << "Could not connect with a Vulkan Runtime library." << std::endl;
     }
 
-    // Checking available Instance extensions
-    
-    uint32_t extensions_count = 0;
+    if(vkDestroyInstance == nullptr) {
+        std::cout << "Could not load vkDestroyInstance." << std::endl;
+    }
+
     VkResult result = VK_SUCCESS;
-
-    result = vkEnumerateInstanceExtensionProperties( nullptr, &extensions_count, nullptr );
-    if( (result != VK_SUCCESS) || (extensions_count == 0) ) {
-        std::cout << "Could not get the number of Instance extensions." << std::endl;
-        return false;
-    }
-
+    
     std::vector<VkExtensionProperties> available_extensions;
-    available_extensions.resize(extensions_count);
+    CheckAvailableInstanceExtensions(available_extensions);
 
-    result = vkEnumerateInstanceExtensionProperties( nullptr, &extensions_count, &available_extensions[0] );
-    if ( (result != VK_SUCCESS) || (extensions_count == 0) ) {
-        std::cout << "Could not enumerate Instance extensions." << std::endl;
-        return false;
-    }
-
-    /*for( auto & available_extension : available_extensions ) {
-        std::cout << available_extension.extensionName << std::endl;
-    }*/
-
+    std::vector<VkLayerProperties> available_layers;
+    CheckAvailableInstanceLayers(available_layers);
 
     VkInstance instance = NULL;
     
@@ -277,6 +203,19 @@ int main(){
         }
     }
 
+    std::vector<char const*> const desired_layers = {
+        "VK_LAYER_KHRONOS_validation",
+        "VK_LAYER_LUNARG_api_dump",
+        "VK_LAYER_LUNARG_monitor"
+    };
+
+    for( auto & layer : desired_layers ) {
+        if( !VulkanCookbook::IsLayerSupported( available_layers, layer ) ) {
+            std::cout << "Layer named '" << layer << "' is not supported by an Instance object." << std::endl;
+            return false;
+        }
+    }
+
     VkApplicationInfo application_info = {
         VK_STRUCTURE_TYPE_APPLICATION_INFO,                 // VkStructureType           sType
         nullptr,                                            // const void              * pNext
@@ -292,22 +231,41 @@ int main(){
         nullptr,                                            // const void              * pNext
         0,                                                  // VkInstanceCreateFlags     flags
         &application_info,                                  // const VkApplicationInfo * pApplicationInfo
-        0,                                                  // uint32_t                  enabledLayerCount
-        nullptr,                                            // const char * const      * ppEnabledLayerNames
+        static_cast<uint32_t>(desired_layers.size()),       // uint32_t                  enabledLayerCount
+        desired_layers.data(),                              // const char * const      * ppEnabledLayerNames
         static_cast<uint32_t>(desired_extensions.size()),   // uint32_t                  enabledExtensionCount
         desired_extensions.data()                           // const char * const      * ppEnabledExtensionNames
     };
-
-    //VulkanCookbook::checkValidationLayerSupport(validationLayers);
 
     result = vkCreateInstance( &instance_create_info, nullptr, &instance );
     if( (result != VK_SUCCESS) || (instance == VK_NULL_HANDLE) ) {
         std::cout << "Could not create Vulkan instance." << std::endl;
         return false;
-    }
+    };
 
+    // Acquire addresses of its entry points for non-core features
+    PFN_vkCreateDebugReportCallbackEXT vkCreateDebugReportCallbackEXT = (PFN_vkCreateDebugReportCallbackEXT) vkGetInstanceProcAddr(instance, "vkCreateDebugReportCallbackEXT");
+    PFN_vkDebugReportMessageEXT vkDebugReportMessageEXT = (PFN_vkDebugReportMessageEXT) vkGetInstanceProcAddr(instance, "vkDebugReportMessageEXT");
+    PFN_vkDestroyDebugReportCallbackEXT vkDestroyDebugReportCallbackEXT = (PFN_vkDestroyDebugReportCallbackEXT) vkGetInstanceProcAddr(instance, "vkDestroyDebugReportCallbackEXT");
+
+    VkDebugReportCallbackCreateInfoEXT callbackCreateInfo;
+    callbackCreateInfo.sType       = VK_STRUCTURE_TYPE_DEBUG_REPORT_CREATE_INFO_EXT;
+    callbackCreateInfo.pNext       = nullptr;
+    callbackCreateInfo.flags       = VK_DEBUG_REPORT_ERROR_BIT_EXT |
+                                     VK_DEBUG_REPORT_WARNING_BIT_EXT |
+                                     VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
+    callbackCreateInfo.pfnCallback = &MyDebugReportCallback;
+    callbackCreateInfo.pUserData   = nullptr;
+
+    /* Register the callback */
+    VkDebugReportCallbackEXT callback;
+    result = vkCreateDebugReportCallbackEXT(instance, &callbackCreateInfo, nullptr, &callback);
+    if( (result != VK_SUCCESS) || (instance == VK_NULL_HANDLE) ) {
+        std::cout << "Could not create debug callback." << std::endl;
+        return false;
+    };
     std::cin.ignore();
-
-    //VulkanCookbook::vkDestroyInstance(instance, nullptr);
+    
+    vkDestroyInstance(instance, nullptr);
     return 0;
 }

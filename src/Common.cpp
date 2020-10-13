@@ -29,6 +29,37 @@
 
 namespace VulkanCookbook {
 
+
+  bool LoadFunctionExportedFromVulkanLoaderLibrary( LIBRARY_TYPE const & vulkan_library ) {
+  #if defined _WIN32
+  #define LoadFunction GetProcAddress
+  #elif defined __linux
+  #define LoadFunction dlsym
+  #endif
+
+  #define EXPORTED_VULKAN_FUNCTION( name )                              \
+      name = (PFN_##name)LoadFunction( vulkan_library, #name );         \
+      if( name == nullptr ) {                                           \
+      std::cout << "Could not load exported Vulkan function named: "  \
+          #name << std::endl;                                           \
+      return false;                                                   \
+      }
+
+      return true;
+  }
+
+  bool LoadGlobalLevelFunctions() {
+  #define GLOBAL_LEVEL_VULKAN_FUNCTION( name )                              \
+      name = (PFN_##name)vkGetInstanceProcAddr( nullptr, #name );           \
+      if( name == nullptr ) {                                               \
+      std::cout << "Could not load global level Vulkan function named: "  \
+          #name << std::endl;                                               \
+      return false;                                                       \
+      }
+
+      return true;
+  }
+
   bool IsExtensionSupported( std::vector<VkExtensionProperties> const & available_extensions,
                              char const * const                         extension ) {
     for( auto & available_extension : available_extensions ) {
@@ -39,4 +70,29 @@ namespace VulkanCookbook {
     return false;
   }
 
+  bool IsLayerSupported( std::vector<VkLayerProperties> const & available_layers,
+                             char const * const                         layer ) {
+    for( auto & available_layer : available_layers ) {
+      if( strstr( available_layer.layerName, layer ) ) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
+
 } // namespace VulkanCookbook
+
+VKAPI_ATTR VkBool32 VKAPI_CALL MyDebugReportCallback(
+      VkDebugReportFlagsEXT       flags,
+      VkDebugReportObjectTypeEXT  objectType,
+      uint64_t                    object,
+      size_t                      location,
+      int32_t                     messageCode,
+      const char*                 pLayerPrefix,
+      const char*                 pMessage,
+      void*                       pUserData)
+  {
+    std::cerr << pMessage << std::endl;
+    return VK_FALSE;
+  }

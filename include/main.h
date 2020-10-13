@@ -30,16 +30,36 @@
 #define LOADING_FUNCTION_EXPORTED_FROM_A_VULKAN_LOADER_LIBRARY
 
 #include "Common.h"
+#include <vector>
+#include "ListOfVulkanFunctions.inl"
+#include <iostream>
+#include <stdexcept>
+#include <cstring>
+#include <cstdlib>
+
+bool lf_result = VulkanCookbook::LoadGlobalLevelFunctions();
+
+void* vulkan_library = dlopen("libvulkan.so.1", RTLD_NOW);
+
+bool lfefvll_result = VulkanCookbook::LoadFunctionExportedFromVulkanLoaderLibrary( vulkan_library);
+
+PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr = (PFN_vkGetInstanceProcAddr) dlsym(vulkan_library, "vkGetInstanceProcAddr");
+PFN_vkEnumerateInstanceExtensionProperties vkEnumerateInstanceExtensionProperties = (PFN_vkEnumerateInstanceExtensionProperties) vkGetInstanceProcAddr( nullptr, "vkEnumerateInstanceExtensionProperties" );
+PFN_vkEnumerateInstanceLayerProperties vkEnumerateInstanceLayerProperties = (PFN_vkEnumerateInstanceLayerProperties) vkGetInstanceProcAddr( nullptr, "vkEnumerateInstanceLayerProperties" );
+PFN_vkCreateInstance vkCreateInstance = (PFN_vkCreateInstance) vkGetInstanceProcAddr( nullptr, "vkCreateInstance" );
+PFN_vkDestroyInstance vkDestroyInstance = (PFN_vkDestroyInstance) vkGetInstanceProcAddr(nullptr, "vkDestroyInstance");
 
 namespace VulkanCookbook {
 
-    bool LoadFunctionExportedFromVulkanLoaderLibrary( LIBRARY_TYPE const & vulkan_library );
-    bool LoadGlobalLevelFunctions();
-    bool CheckAvailableInstanceExtensions( std::vector<VkExtensionProperties> & available_extensions );
+    bool EnumerateAvailablePhysicalDevices( VkInstance instance, std::vector<VkPhysicalDevice> & available_devices );
     bool CreateVulkanInstance( std::vector<char const *> const & desired_extensions,
                             char const * const                application_name,
                             VkInstance & instance );
 
 } // namespace VulkanCookbook
+
+bool CheckAvailableInstanceLayers(std::vector<VkLayerProperties> &available_layers);
+bool CheckAvailableInstanceExtensions(std::vector<VkExtensionProperties> &available_extensions);
+
 
 #endif // LOADING_FUNCTION_EXPORTED_FROM_A_VULKAN_LOADER_LIBRARY

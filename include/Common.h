@@ -79,9 +79,24 @@ namespace VulkanCookbook {
   };
 
   // Extension availability check
+  bool LoadFunctionExportedFromVulkanLoaderLibrary( LIBRARY_TYPE const & vulkan_library );
+  bool LoadGlobalLevelFunctions();
   bool IsExtensionSupported( std::vector<VkExtensionProperties> const & available_extensions,
                              char const * const                         extension );
 
+  bool IsLayerSupported( std::vector<VkLayerProperties> const & available_layers,
+                             char const * const                         layer );
+
 } // namespace VulkanCookbook
+
+VKAPI_ATTR VkBool32 VKAPI_CALL MyDebugReportCallback(
+      VkDebugReportFlagsEXT       flags,
+      VkDebugReportObjectTypeEXT  objectType,
+      uint64_t                    object,
+      size_t                      location,
+      int32_t                     messageCode,
+      const char*                 pLayerPrefix,
+      const char*                 pMessage,
+      void*                       pUserData);
 
 #endif // COMMON

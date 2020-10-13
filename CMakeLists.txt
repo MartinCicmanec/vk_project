@@ -52,7 +52,7 @@ if( CMAKE_BUILD_TYPE STREQUAL "debug" )
 	add_definitions(-D_DEBUG)
 endif()
 
-#set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 
 add_definitions( -DVK_NO_PROTOTYPES )
 add_definitions( -DVK_USE_PLATFORM_${VK_USE_PLATFORM}_KHR )
