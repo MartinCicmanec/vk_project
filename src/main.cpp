@@ -170,11 +170,12 @@ namespace VulkanCookbook {
 int main(){
     
     std::cout << "Start." << std::endl;
-    bool lglf = VulkanCookbook::LoadGlobalLevelFunctions();
 
     void* vulkan_library = dlopen("libvulkan.so", RTLD_NOW);
     bool lfefvll_result = VulkanCookbook::LoadFunctionExportedFromVulkanLoaderLibrary( vulkan_library);
 
+    bool lglf = VulkanCookbook::LoadGlobalLevelFunctions();
+    
     if( vulkan_library == nullptr ) {
         std::cout << "Could not connect with a Vulkan Runtime library." << std::endl;
     }
