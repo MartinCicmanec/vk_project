@@ -40,6 +40,7 @@ namespace VulkanCookbook {
                             VkInstance & instance );
     bool CheckAvailableInstanceLayers(std::vector<VkLayerProperties> &available_layers);
     bool CheckAvailableInstanceExtensions(std::vector<VkExtensionProperties> &available_extensions);
+    bool CheckAllDeviceQueueFamilyProperties(VkPhysicalDevice device, std::vector<VkQueueFamilyProperties> queue_families);
 } //namespace
 
 #endif

@@ -164,6 +164,20 @@ namespace VulkanCookbook {
         }
         return true;
     }
+
+    bool CheckAllDeviceQueueFamilyProperties(VkPhysicalDevice device, std::vector<VkQueueFamilyProperties> queue_families) {
+        uint32_t queue_families_count;
+        VkResult result = VK_SUCCESS;
+
+        vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_families_count, nullptr);
+
+        queue_families.resize(queue_families_count);
+        vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_families_count, queue_families.data());
+        
+        if( queue_families_count == 0 ) {  std::cout << "Could not acquire properties of queue families." <<std::endl;  return false;}
+
+        return true;
+    }
 } //VulkanCookbook
 
 
@@ -303,6 +317,9 @@ int main(){
         std::cout << "\t" << deviceProperties.deviceName << std::endl;
         //delete &deviceProperties;
     }
+
+    std::vector<VkQueueFamilyProperties> queue_families;
+    VulkanCookbook::CheckAllDeviceQueueFamilyProperties(available_devices[0], queue_families);
     std::cin.ignore();
     
     VulkanCookbook::vkDestroyInstance(instance, nullptr);
