@@ -3820,7 +3820,8 @@ typedef VkResult (VKAPI_PTR *PFN_vkCreateDebugReportCallbackEXT)(VkInstance inst
 typedef void (VKAPI_PTR *PFN_vkDestroyDebugReportCallbackEXT)(VkInstance instance, VkDebugReportCallbackEXT callback, const VkAllocationCallbacks* pAllocator);
 typedef void (VKAPI_PTR *PFN_vkDebugReportMessageEXT)(VkInstance instance, VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objectType, uint64_t object, size_t location, int32_t messageCode, const char* pLayerPrefix, const char* pMessage);
 
-#ifndef VK_NO_PROTOTYPES
+
+//#ifndef VK_NO_PROTOTYPES martin
 VKAPI_ATTR VkResult VKAPI_CALL vkCreateDebugReportCallbackEXT(
     VkInstance                                  instance,
     const VkDebugReportCallbackCreateInfoEXT*   pCreateInfo,
@@ -3841,7 +3842,7 @@ VKAPI_ATTR void VKAPI_CALL vkDebugReportMessageEXT(
     int32_t                                     messageCode,
     const char*                                 pLayerPrefix,
     const char*                                 pMessage);
-#endif
+//#endif
 
 #define VK_NV_glsl_shader 1
 #define VK_NV_GLSL_SHADER_SPEC_VERSION    1
