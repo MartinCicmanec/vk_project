@@ -33,6 +33,11 @@
 #include <cstring>
 #include <cstdlib>
 
+struct QueueInfo {
+    uint32_t FamilyIndex;
+    std::vector<float> Priorities;
+};
+
 namespace VulkanCookbook {
     bool EnumerateAvailablePhysicalDevices( VkInstance instance, std::vector<VkPhysicalDevice> &available_devices );
     bool CreateVulkanInstance( std::vector<char const *> const & desired_extensions,
@@ -40,7 +45,7 @@ namespace VulkanCookbook {
                             VkInstance & instance );
     bool CheckAvailableInstanceLayers(std::vector<VkLayerProperties> &available_layers);
     bool CheckAvailableInstanceExtensions(std::vector<VkExtensionProperties> &available_extensions);
-    bool CheckAllDeviceQueueFamilyProperties(VkPhysicalDevice device, std::vector<VkQueueFamilyProperties> queue_families);
+    bool CheckAllDeviceQueueFamilyProperties(VkPhysicalDevice device, std::vector<VkQueueFamilyProperties> &queue_families);
 } //namespace
 
 #endif

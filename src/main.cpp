@@ -39,7 +39,7 @@
 
 namespace VulkanCookbook {
 
-    bool EnumerateAvailablePhysicalDevices( VkInstance instance, std::vector<VkPhysicalDevice> &available_devices ) {
+    bool EnumerateAvailablePhysicalDevices( VkInstance instance, std::vector<VkPhysicalDevice> &physical_devices ) {
         uint32_t devices_count = 0;
         VkResult result = VK_SUCCESS;
 
@@ -49,15 +49,15 @@ namespace VulkanCookbook {
             return false;
         }
 
-        available_devices.resize( devices_count );
-        result = vkEnumeratePhysicalDevices( NULL, &devices_count, available_devices.data() );
+        physical_devices.resize( devices_count );
+        result = vkEnumeratePhysicalDevices( NULL, &devices_count, physical_devices.data() );
         if( (result != VK_SUCCESS) || (devices_count == 0) ) {
             std::cout << "Could not enumerate physical devices." << std::endl;
             return false;
         }
         
         std::cout << "Devices : " << std::endl;
-        for( auto & available_device : available_devices ) {
+        for( auto & available_device : physical_devices ) {
             VkPhysicalDeviceProperties deviceProperties;
             vkGetPhysicalDeviceProperties(available_device, &deviceProperties);
             std::cout << "\t" << deviceProperties.deviceName << std::endl;
@@ -165,12 +165,11 @@ namespace VulkanCookbook {
         return true;
     }
 
-    bool CheckAllDeviceQueueFamilyProperties(VkPhysicalDevice device, std::vector<VkQueueFamilyProperties> queue_families) {
+    bool CheckAllDeviceQueueFamilyProperties(VkPhysicalDevice device, std::vector<VkQueueFamilyProperties> &queue_families) {
         uint32_t queue_families_count;
         VkResult result = VK_SUCCESS;
 
         vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_families_count, nullptr);
-
         queue_families.resize(queue_families_count);
         vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_families_count, queue_families.data());
         
@@ -181,9 +180,16 @@ namespace VulkanCookbook {
 } //VulkanCookbook
 
 
-int main(){
-    
-    std::cout << "Start." << std::endl;
+int main(int argc, char * argv[]) {
+
+    bool enable_verbose = false;
+    for ( int i = 0; i < argc; i = i + 1 ){
+        if ((strcmp(argv[i], "-v") == 0) || (strcmp(argv[i], "--verbose") == 0)) {
+            enable_verbose = true;
+            std::cout << "Enabled verbose" << std::endl;
+        }
+    }
+
 
     void* vulkan_library = dlopen("libvulkan.so", RTLD_NOW);
     bool lfefvll_result = VulkanCookbook::LoadFunctionExportedFromVulkanLoaderLibrary( vulkan_library);
@@ -242,11 +248,15 @@ int main(){
         }
     }
 
-    std::vector<char const*> const desired_layers = {
-        "VK_LAYER_KHRONOS_validation",
-        "VK_LAYER_LUNARG_api_dump",
+    std::vector<char const*> desired_layers = {
         "VK_LAYER_LUNARG_monitor"
     };
+
+    if (enable_verbose == true) {
+        desired_layers.push_back("VK_LAYER_KHRONOS_validation");
+        desired_layers.push_back("VK_LAYER_LUNARG_api_dump");
+    }
+
 
     for( auto & layer : desired_layers ) {
         if( !VulkanCookbook::IsLayerSupported( available_layers, layer ) ) {
@@ -283,45 +293,103 @@ int main(){
     };
 
     bool lilf = VulkanCookbook::LoadInstanceLevelFunctions(instance, desired_extensions);
+    bool debug_callbacks = false;
+    if (debug_callbacks == true) {
+        VkDebugReportCallbackCreateInfoEXT callbackCreateInfo;
+        callbackCreateInfo.sType       = VK_STRUCTURE_TYPE_DEBUG_REPORT_CREATE_INFO_EXT;
+        callbackCreateInfo.pNext       = nullptr;
+        callbackCreateInfo.flags       = VK_DEBUG_REPORT_ERROR_BIT_EXT |
+                                        VK_DEBUG_REPORT_WARNING_BIT_EXT |
+                                        VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
+        callbackCreateInfo.pfnCallback = &MyDebugReportCallback;
+        callbackCreateInfo.pUserData   = nullptr;
 
-    VkDebugReportCallbackCreateInfoEXT callbackCreateInfo;
-    callbackCreateInfo.sType       = VK_STRUCTURE_TYPE_DEBUG_REPORT_CREATE_INFO_EXT;
-    callbackCreateInfo.pNext       = nullptr;
-    callbackCreateInfo.flags       = VK_DEBUG_REPORT_ERROR_BIT_EXT |
-                                     VK_DEBUG_REPORT_WARNING_BIT_EXT |
-                                     VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
-    callbackCreateInfo.pfnCallback = &MyDebugReportCallback;
-    callbackCreateInfo.pUserData   = nullptr;
-
-    /* Register the callback */
-    VkDebugReportCallbackEXT callback;
-    result = VulkanCookbook::vkCreateDebugReportCallbackEXT(instance, &callbackCreateInfo, nullptr, &callback);
-    if( (result != VK_SUCCESS) || (instance == VK_NULL_HANDLE) ) {
-        std::cout << "Could not create debug callback." << std::endl;
-        return false;
-    };
-
-    std::vector<VkPhysicalDevice> available_devices;
-    //EnumerateAvailablePhysicalDevices(instance, available_devices);
+        /* Register the callback */
+        VkDebugReportCallbackEXT callback;
+        result = VulkanCookbook::vkCreateDebugReportCallbackEXT(instance, &callbackCreateInfo, nullptr, &callback);
+        if( (result != VK_SUCCESS) || (instance == VK_NULL_HANDLE) ) {
+            std::cout << "Could not create debug callback." << std::endl;
+            return false;
+        };
+    }
+    std::vector<VkPhysicalDevice> physical_devices;
+    //EnumerateAvailablePhysicalDevices(instance, physical_devices);
     uint32_t devices_count = 0;
     result = VulkanCookbook::vkEnumeratePhysicalDevices( instance, &devices_count, nullptr );
 
     std::cout << "device count : " << devices_count << std::endl;
     
-    available_devices.resize( devices_count );
-    result = VulkanCookbook::vkEnumeratePhysicalDevices( instance, &devices_count, available_devices.data() );
+    physical_devices.resize( devices_count );
+    result = VulkanCookbook::vkEnumeratePhysicalDevices( instance, &devices_count, physical_devices.data() );
     
-    for( auto & available_device : available_devices ) {
-        VkPhysicalDeviceProperties deviceProperties;
-        VulkanCookbook::vkGetPhysicalDeviceProperties(available_device, &deviceProperties);
-        std::cout << "\t" << deviceProperties.deviceName << std::endl;
-        //delete &deviceProperties;
-    }
+    VkQueueFlags desired_capabilities = VK_QUEUE_GRAPHICS_BIT || VK_QUEUE_COMPUTE_BIT || VK_QUEUE_TRANSFER_BIT;
+    VkPhysicalDeviceProperties deviceProperties;
+    VkPhysicalDeviceFeatures deviceFeatures;
+
+    VkPhysicalDevice available_device = physical_devices[0];
+    VulkanCookbook::vkGetPhysicalDeviceProperties(available_device, &deviceProperties);
+    std::cout << "\t" << deviceProperties.deviceName << std::endl;
+    VulkanCookbook::vkGetPhysicalDeviceFeatures( physical_devices[0], &deviceFeatures);
 
     std::vector<VkQueueFamilyProperties> queue_families;
-    VulkanCookbook::CheckAllDeviceQueueFamilyProperties(available_devices[0], queue_families);
-    std::cin.ignore();
+    VulkanCookbook::CheckAllDeviceQueueFamilyProperties(physical_devices[0], queue_families);
+    std::cout << "Available queue families : " << queue_families.size() << std::endl;
+
+    uint32_t queue_family_index;
+
+    for( uint32_t index = 0; index < static_cast<uint32_t>(queue_families.size()); ++index ) {
+        std::cout << "\t" << queue_families[index].queueCount << std::endl;
+        if( (queue_families[index].queueCount > 0) && (queue_families[index].queueFlags & desired_capabilities) ) {
+            queue_family_index = index;
+        }
+    }
+    //std::vector<VkQueueFamilyProperties> queue_families
+
+    std::vector<QueueInfo> queue_infos;
+    QueueInfo qInfo = {
+        0,
+        {1.0f}
+    };
+    //qInfo.FamilyIndex = 0;
+    //qInfo.Priorities = {1.0f};
+    queue_infos.push_back(qInfo);
+
+    std::vector<VkDeviceQueueCreateInfo> queue_create_infos;
+    for( auto & info : queue_infos ) {
+        queue_create_infos.push_back( {
+            VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+            nullptr,
+            0,
+            info.FamilyIndex,
+            static_cast<uint32_t>(info.Priorities.size()),
+            info.Priorities.data()
+        } );
+    };
+
+    VkDeviceCreateInfo device_create_info;
+    device_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+    device_create_info.pNext = nullptr;
+    device_create_info.flags = 0;
+    device_create_info.queueCreateInfoCount = static_cast<uint32_t>(queue_create_infos.size()); //
+    device_create_info.pQueueCreateInfos = queue_create_infos.data();
+    device_create_info.enabledLayerCount = static_cast<uint32_t>(desired_layers.size());
+    device_create_info.ppEnabledLayerNames = desired_layers.data();
+    device_create_info.enabledExtensionCount = static_cast<uint32_t>(desired_extensions.size());
+    device_create_info.ppEnabledExtensionNames = desired_extensions.data();
+    device_create_info.pEnabledFeatures = &deviceFeatures;
     
+
+    VkDevice logical_device;
+    result = VK_SUCCESS;
+    result = VulkanCookbook::vkCreateDevice( physical_devices[0], &device_create_info, nullptr, &logical_device );
+
+    if ((result == VK_SUCCESS) || ((logical_device == VK_NULL_HANDLE))) {
+        std::cout << "Created logical device." << std::endl;
+    } else {
+        std::cout << "Failed to create logical device." << std::endl;
+    }
+
+    std::cin.ignore();
     VulkanCookbook::vkDestroyInstance(instance, nullptr);
     return 0;
 }
