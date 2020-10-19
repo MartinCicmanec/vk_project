@@ -83,6 +83,7 @@ namespace VulkanCookbook {
   bool LoadFunctionExportedFromVulkanLoaderLibrary( LIBRARY_TYPE const & vulkan_library );
   bool LoadGlobalLevelFunctions();
   bool LoadInstanceLevelFunctions( VkInstance instance, std::vector<char const *> const & enabled_extensions );
+  bool LoadDeviceLevelFunctions( VkDevice logical_device, std::vector<char const *> const & enabled_extensions );
   bool IsExtensionSupported( std::vector<VkExtensionProperties> const & available_extensions,
                              char const * const                         extension );
 
