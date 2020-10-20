@@ -115,7 +115,7 @@ namespace VulkanCookbook {
       if( std::string( enabled_extension ) == std::string( extension ) ) {      \
         name = (PFN_##name)vkGetDeviceProcAddr( logical_device, #name );        \
         if( name == nullptr ) {                                                 \
-          std::cout << "Could not load device-level Vulkan function named: "    \
+          std::cout << "Could not load device-level Vulkan function from extension named: "    \
             #name << std::endl;                                                 \
           return false;                                                         \
         }                                                                       \

@@ -308,36 +308,36 @@ namespace VulkanCookbook {
             GetFeaturesAndPropertiesOfPhysicalDevice( physical_device, device_features, device_properties );
 
             if( !device_features.geometryShader ) {
-            continue;
+                continue;
             } else {
-            device_features = {};
-            device_features.geometryShader = VK_TRUE;
+                device_features = {};
+                device_features.geometryShader = VK_TRUE;
             }
 
             uint32_t graphics_queue_family_index;
             if( !SelectIndexOfQueueFamilyWithDesiredCapabilities( physical_device, VK_QUEUE_GRAPHICS_BIT, graphics_queue_family_index ) ) {
-            continue;
+                continue;
             }
 
             uint32_t compute_queue_family_index;
             if( !SelectIndexOfQueueFamilyWithDesiredCapabilities( physical_device, VK_QUEUE_COMPUTE_BIT, compute_queue_family_index ) ) {
-            continue;
+                continue;
             }
 
             std::vector<QueueInfo> requested_queues = { { graphics_queue_family_index, { 1.0f } } };
             if( graphics_queue_family_index != compute_queue_family_index ) {
-            requested_queues.push_back( { compute_queue_family_index, { 1.0f } } );
+                requested_queues.push_back( { compute_queue_family_index, { 1.0f } } );
             }
 
             if( !CreateLogicalDevice( physical_device, requested_queues, {}, &device_features, logical_device ) ) {
-            continue;
+                continue;
             } else {
-            if( !LoadDeviceLevelFunctions( logical_device, {} ) ) {
-                return false;
-            }
-            GetDeviceQueue( logical_device, graphics_queue_family_index, 0, graphics_queue );
-            GetDeviceQueue( logical_device, compute_queue_family_index, 0, compute_queue );
-            return true;
+                if( !LoadDeviceLevelFunctions( logical_device, {} ) ) {
+                    return false;
+                }
+                GetDeviceQueue( logical_device, graphics_queue_family_index, 0, graphics_queue );
+                GetDeviceQueue( logical_device, compute_queue_family_index, 0, compute_queue );
+                return true;
             }
         }
         return false;
@@ -402,6 +402,7 @@ int main(int argc, char * argv[]) {
         "VK_KHR_get_physical_device_properties2",
         "VK_KHR_get_surface_capabilities2",
         "VK_KHR_surface",
+        "VK_KHR_xlib_surface", // platform specific
         "VK_KHR_display",
         "VK_EXT_debug_report",
         "VK_EXT_debug_utils"
@@ -740,11 +741,11 @@ int main(int argc, char * argv[]) {
     queue_infos.push_back(qInfo);
 
     VkDevice logical_device;
-    
+
     VkQueue graphics_queue;
     VkQueue compute_queue;
     VulkanCookbook::CreateLogicalDeviceWithGeometryShadersAndGraphicsAndComputeQueues(instance, logical_device, graphics_queue, compute_queue);
-    VulkanCookbook::LoadDeviceLevelFunctions(logical_device, desired_device_extensions);
+    //VulkanCookbook::LoadDeviceLevelFunctions(logical_device, desired_device_extensions);
     
     VkQueue queue;
     VulkanCookbook::GetDeviceQueue(logical_device, queue_family_index, 0, queue);
