@@ -290,6 +290,72 @@ namespace VulkanCookbook {
         return true;
     }
 
+    void GetDeviceQueue( VkDevice logical_device, uint32_t queue_family_index, uint32_t queue_index, VkQueue & queue ) {
+        vkGetDeviceQueue( logical_device, queue_family_index, queue_index, &queue );
+    }
+
+
+    bool CreateLogicalDeviceWithGeometryShadersAndGraphicsAndComputeQueues( VkInstance   instance,
+                                                                            VkDevice   & logical_device,
+                                                                            VkQueue    & graphics_queue,
+                                                                            VkQueue    & compute_queue ) {
+        std::vector<VkPhysicalDevice> physical_devices;
+        EnumerateAvailablePhysicalDevices( instance, physical_devices );
+
+        for( auto & physical_device : physical_devices ) {
+            VkPhysicalDeviceFeatures device_features;
+            VkPhysicalDeviceProperties device_properties;
+            GetFeaturesAndPropertiesOfPhysicalDevice( physical_device, device_features, device_properties );
+
+            if( !device_features.geometryShader ) {
+            continue;
+            } else {
+            device_features = {};
+            device_features.geometryShader = VK_TRUE;
+            }
+
+            uint32_t graphics_queue_family_index;
+            if( !SelectIndexOfQueueFamilyWithDesiredCapabilities( physical_device, VK_QUEUE_GRAPHICS_BIT, graphics_queue_family_index ) ) {
+            continue;
+            }
+
+            uint32_t compute_queue_family_index;
+            if( !SelectIndexOfQueueFamilyWithDesiredCapabilities( physical_device, VK_QUEUE_COMPUTE_BIT, compute_queue_family_index ) ) {
+            continue;
+            }
+
+            std::vector<QueueInfo> requested_queues = { { graphics_queue_family_index, { 1.0f } } };
+            if( graphics_queue_family_index != compute_queue_family_index ) {
+            requested_queues.push_back( { compute_queue_family_index, { 1.0f } } );
+            }
+
+            if( !CreateLogicalDevice( physical_device, requested_queues, {}, &device_features, logical_device ) ) {
+            continue;
+            } else {
+            if( !LoadDeviceLevelFunctions( logical_device, {} ) ) {
+                return false;
+            }
+            GetDeviceQueue( logical_device, graphics_queue_family_index, 0, graphics_queue );
+            GetDeviceQueue( logical_device, compute_queue_family_index, 0, compute_queue );
+            return true;
+            }
+        }
+        return false;
+    }
+
+    void DestroyLogicalDevice( VkDevice & logical_device ) {
+        if( logical_device ) {
+            vkDestroyDevice( logical_device, nullptr );
+            logical_device = VK_NULL_HANDLE;
+        }
+    }
+
+    void DestroyVulkanInstance( VkInstance & instance ) {
+        if( instance ) {
+            vkDestroyInstance( instance, nullptr );
+            instance = VK_NULL_HANDLE;
+        }
+    }
 } //VulkanCookbook
 
 
@@ -432,6 +498,11 @@ int main(int argc, char * argv[]) {
     
     std::vector<VkPhysicalDevice> physical_devices;
     VulkanCookbook::EnumerateAvailablePhysicalDevices(instance, physical_devices);
+    
+    for (auto & physical_device : physical_devices) {
+    
+    }
+    
     /*uint32_t devices_count = 0;
     result = VulkanCookbook::vkEnumeratePhysicalDevices( instance, &devices_count, nullptr );
 
@@ -449,7 +520,9 @@ int main(int argc, char * argv[]) {
     VkPhysicalDeviceFeatures deviceFeatures;
     VkPhysicalDeviceProperties deviceProperties;
     VulkanCookbook::GetFeaturesAndPropertiesOfPhysicalDevice(physical_devices[0], deviceFeatures, deviceProperties);
-
+    std::cout << "Found device : " << std::endl;
+    std::cout << "\t" << deviceProperties.deviceName << std::endl;
+    
     std::vector<VkQueueFamilyProperties> queue_families;
     VulkanCookbook::CheckAvailableQueueFamiliesAndTheirProperties(physical_devices[0], queue_families);
     
@@ -459,9 +532,9 @@ int main(int argc, char * argv[]) {
     VkQueueFlags desired_capabilities = VK_QUEUE_GRAPHICS_BIT || VK_QUEUE_COMPUTE_BIT || VK_QUEUE_TRANSFER_BIT;
     
     VulkanCookbook::SelectIndexOfQueueFamilyWithDesiredCapabilities(physical_devices[0], desired_capabilities, queue_family_index);
-    //std::vector<VkQueueFamilyProperties> queue_families
+    std::cout << "Queue family index : " << queue_family_index << std::endl;
 
-    /*std::vector<char const*> const desired_device_extensions = {
+    std::vector<char const*> const desired_device_extensions = {
         "VK_KHR_8bit_storage",
         "VK_KHR_16bit_storage",
         "VK_KHR_bind_memory2",
@@ -543,8 +616,9 @@ int main(int argc, char * argv[]) {
         "VK_GOOGLE_user_type",
         "VK_INTEL_shader_integer_functions2",
         "VK_NV_compute_shader_derivatives"
-    };*/
+    };
 
+    /*/
     std::vector<char const*> const desired_device_extensions = {
         "VK_KHR_16bit_storage",
         "VK_KHR_bind_memory2",
@@ -655,7 +729,7 @@ int main(int argc, char * argv[]) {
         "VK_GOOGLE_user_type",
         "VK_NV_compute_shader_derivatives",
         "VK_EXT_4444_formats"
-    };
+    };/*/
 
     std::vector<QueueInfo> queue_infos;
     QueueInfo qInfo = {
@@ -666,19 +740,18 @@ int main(int argc, char * argv[]) {
     queue_infos.push_back(qInfo);
 
     VkDevice logical_device;
-    result = VK_SUCCESS;
-    VulkanCookbook::CreateLogicalDevice(physical_devices[0], queue_infos, desired_device_extensions, &deviceFeatures, logical_device);
-
-    if ((result == VK_SUCCESS) || ((logical_device == VK_NULL_HANDLE))) {
-        std::cout << "Created logical device." << std::endl;
-    } else {
-        std::cout << "Failed to create logical device." << std::endl;
-    }
+    
+    VkQueue graphics_queue;
+    VkQueue compute_queue;
+    VulkanCookbook::CreateLogicalDeviceWithGeometryShadersAndGraphicsAndComputeQueues(instance, logical_device, graphics_queue, compute_queue);
     VulkanCookbook::LoadDeviceLevelFunctions(logical_device, desired_device_extensions);
+    
+    VkQueue queue;
+    VulkanCookbook::GetDeviceQueue(logical_device, queue_family_index, 0, queue);
 
-
-
+    VulkanCookbook::DestroyLogicalDevice(logical_device);
+    VulkanCookbook::DestroyVulkanInstance(instance);
+    VulkanCookbook::ReleaseVulkanLoaderLibrary(vulkan_library);
     std::cin.ignore();
-    VulkanCookbook::vkDestroyInstance(instance, nullptr);
     return 0;
 }

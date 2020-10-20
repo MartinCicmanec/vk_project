@@ -58,6 +58,13 @@ namespace VulkanCookbook {
                             std::vector<char const *> const & desired_extensions,
                             VkPhysicalDeviceFeatures * desired_features,
                             VkDevice & logical_device );
+    void GetDeviceQueue( VkDevice logical_device, uint32_t queue_family_index, uint32_t queue_index, VkQueue & queue );
+    bool CreateLogicalDeviceWithGeometryShadersAndGraphicsAndComputeQueues( VkInstance   instance,
+                                                                            VkDevice   & logical_device,
+                                                                            VkQueue    & graphics_queue,
+                                                                            VkQueue    & compute_queue );
+    void DestroyLogicalDevice( VkDevice & logical_device );
+    void DestroyVulkanInstance( VkInstance & instance );
 } //namespace
 
 #endif
