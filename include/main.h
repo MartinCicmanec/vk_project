@@ -65,6 +65,29 @@ namespace VulkanCookbook {
                                                                             VkQueue    & compute_queue );
     void DestroyLogicalDevice( VkDevice & logical_device );
     void DestroyVulkanInstance( VkInstance & instance );
+    // Capter 2
+    bool CreateVulkanInstanceWithWSIExtensionsEnabled( VkInstance & instance,
+                                                        std::vector<char const *> & desired_extensions);
+    bool CreatePresentationSurface( VkInstance         instance,
+                                  WindowParameters   window_parameters,
+                                  VkSurfaceKHR     & presentation_surface );
+    bool SelectQueueFamilyWithPresentationToSurface( VkPhysicalDevice    physical_device,
+                                                     VkSurfaceKHR        presentation_surface,
+                                                     uint32_t          & queue_family_index );
+    bool CreateLogicalDeviceWithWsiExtensionsEnabled( VkPhysicalDevice          physical_device,
+                                                      std::vector< QueueInfo >    queue_infos,
+                                                      std::vector<char const *> & desired_extensions,
+                                                      VkPhysicalDeviceFeatures  * desired_features,
+                                                      VkDevice                  & logical_device );
+    bool SelectDesiredPresentationMode( VkPhysicalDevice   physical_device,
+                                        VkSurfaceKHR       presentation_surface,
+                                        VkPresentModeKHR   desired_present_mode,
+                                        VkPresentModeKHR & present_mode );
+    bool GetCapabilitiesOfPresentationSurface( VkPhysicalDevice           physical_device,
+                                               VkSurfaceKHR               presentation_surface,
+                                               VkSurfaceCapabilitiesKHR & surface_capabilities );
+    bool SelectNumberOfSwapchainImages( VkSurfaceCapabilitiesKHR const & surface_capabilities,
+                                        uint32_t                       & number_of_images );
 } //namespace
 
 #endif

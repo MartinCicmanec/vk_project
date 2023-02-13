@@ -60,7 +60,7 @@ namespace VulkanCookbook {
     #include "ListOfVulkanFunctions.inl"
     return true;
   }
-  
+
   bool LoadInstanceLevelFunctions(VkInstance instance, std::vector<char const *> const &enabled_extensions) {
     // Load core Vulkan API instance-level functions
     #undef INSTANCE_LEVEL_VULKAN_FUNCTION
@@ -109,6 +109,8 @@ namespace VulkanCookbook {
       return false;                                                             \
     }
 
+    #include "ListOfVulkanFunctions.inl"
+
     // Load device-level functions from enabled extensions
     #define DEVICE_LEVEL_VULKAN_FUNCTION_FROM_EXTENSION( name, extension )          \
     for( auto & enabled_extension : enabled_extensions ) {                      \
@@ -121,8 +123,6 @@ namespace VulkanCookbook {
         }                                                                       \
       }                                                                         \
     }
-
-    #include "ListOfVulkanFunctions.inl"
 
     return true;
   }
