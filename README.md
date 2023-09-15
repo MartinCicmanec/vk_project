@@ -5,7 +5,7 @@ Try watching this [video](https://www.youtube.com/watch?v=8jLOx1hD3_o).
 I am switching to another [tutorial](https://vulkan-tutorial.com/) with active [git](https://github.com/Overv/VulkanTutorial).
 It seems to support Wayland. Basically starting from scratch.
 
-Next [chapter](https://vulkan-tutorial.com/en/Drawing_a_triangle/Presentation/Image_views)
+Next [chapter](https://vulkan-tutorial.com/en/Drawing_a_triangle/Graphics_pipeline_basics/Introduction)
 
 Later maybe try [raytracing](https://github.com/RayTracing/raytracing.github.io).
 
