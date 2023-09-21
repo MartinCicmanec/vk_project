@@ -21,3 +21,7 @@ https://vulkan-tutorial.com/Drawing_a_triangle/Setup/Validation_layers  Debuggin
 
 ### Water sim
     [link](https://people.csail.mit.edu/kuiwu/gvdb_sim.html) to sources.
+
+# Problems
+    Windowing under [Wayland](https://discourse.glfw.org/t/using-glfw-under-wayland/1547/3)
+    [https://www.glfw.org/docs/3.4/window_guide.html](https://www.glfw.org/docs/3.4/window_guide.html)

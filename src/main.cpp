@@ -1,8 +1,10 @@
-#define VK_USE_PLATFORM_XCB_KHR
+//#define VK_USE_PLATFORM_XCB_KHR
+//#define VK_USE_PLATFORM_WAYLAND_KHR
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
-#define GLFW_EXPOSE_NATIVE_XCB_KHR
-#include <GLFW/glfw3native.h>
+//#include <GLFW/glfw3native.h>
+#define GLFW_PLATFORM_WAYLAND 0x00060003
+#define GLFW_PLATFORM 0x00050003
 
 #include <iostream>
 #include <cstring>
@@ -138,12 +140,24 @@ private:
     VkFence inFlightFence;
 
     void initWindow() {
-        glfwInit();
+        if (glfwInit() != GLFW_TRUE) {
+            throw std::runtime_error("failed to create GLFW3 window!");
+        }
 
+        GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+        const GLFWvidmode* mode = glfwGetVideoMode(monitor);
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+        //glfwWindowHint(GLFW_PLATFORM, GLFW_PLATFORM_WAYLAND);
         glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
-        window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
+        glfwWindowHint(GLFW_RED_BITS, mode->redBits);
+        glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
+        glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
+        glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
+
+
+        window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", monitor, NULL);
+        //window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
     }
     void initVulkan() {
         checkAviableExtensions();
