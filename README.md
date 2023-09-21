@@ -20,8 +20,8 @@ https://vulkan.lunarg.com/sdk/home#linux
 https://vulkan-tutorial.com/Drawing_a_triangle/Setup/Validation_layers  Debugging instance creation and destruction
 
 ### Water sim
-    [link](https://people.csail.mit.edu/kuiwu/gvdb_sim.html) to sources.
+[link](https://people.csail.mit.edu/kuiwu/gvdb_sim.html) to sources.
 
 # Problems
-    Windowing under [Wayland](https://discourse.glfw.org/t/using-glfw-under-wayland/1547/3)
-    [https://www.glfw.org/docs/3.4/window_guide.html](https://www.glfw.org/docs/3.4/window_guide.html)
+Windowing under [Wayland](https://discourse.glfw.org/t/using-glfw-under-wayland/1547/3)
+[https://www.glfw.org/docs/3.4/window_guide.html](https://www.glfw.org/docs/3.4/window_guide.html)
