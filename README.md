@@ -5,7 +5,7 @@ Try watching this [video](https://www.youtube.com/watch?v=8jLOx1hD3_o).
 I am switching to another [tutorial](https://vulkan-tutorial.com/) with active [git](https://github.com/Overv/VulkanTutorial).
 It seems to support Wayland. Basically starting from scratch.
 
-Next [chapter](https://vulkan-tutorial.com/en/Uniform_buffers/Descriptor_layout_and_buffer)
+Next [chapter](https://vulkan-tutorial.com/Texture_mapping/Images)
 
 Later maybe try [raytracing](https://github.com/RayTracing/raytracing.github.io).
 
