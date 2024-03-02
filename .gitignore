@@ -13,3 +13,4 @@ vgcore.*
 lib
 VulkanTest
 glfw
+*.spv
