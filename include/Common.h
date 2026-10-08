@@ -68,18 +68,24 @@
 #elif defined VK_USE_PLATFORM_XLIB_KHR
 
     Display          * Dpy;
-    Window             Window;
+    ::Window           Window;
 
 #elif defined VK_USE_PLATFORM_XCB_KHR
 
     xcb_connection_t * Connection;
     xcb_window_t       Window;
 
+#elif defined VK_USE_PLATFORM_WAYLAND_KHR
+
+    struct wl_display * Display;
+    struct wl_surface * Surface;
+
 #endif
   };
 
 namespace VulkanCookbook {
   // Extension availability check
+  bool ConnectWithVulkanLoaderLibrary( LIBRARY_TYPE & vulkan_library );
   bool LoadFunctionExportedFromVulkanLoaderLibrary( LIBRARY_TYPE const & vulkan_library );
   bool LoadGlobalLevelFunctions();
   bool LoadInstanceLevelFunctions( VkInstance instance, std::vector<char const *> const & enabled_extensions );
@@ -91,15 +97,5 @@ namespace VulkanCookbook {
   bool IsLayerSupported( std::vector<VkLayerProperties> const & available_layers,
                              char const * const                         layer );
 } //VulkanCookbook
-
-VKAPI_ATTR VkBool32 VKAPI_CALL MyDebugReportCallback(
-      VkDebugReportFlagsEXT       flags,
-      VkDebugReportObjectTypeEXT  objectType,
-      uint64_t                    object,
-      size_t                      location,
-      int32_t                     messageCode,
-      const char*                 pLayerPrefix,
-      const char*                 pMessage,
-      void*                       pUserData);
 
 #endif // COMMON

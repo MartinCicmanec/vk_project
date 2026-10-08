@@ -31,7 +31,7 @@
 
 #ifndef VULKAN_FUNCTIONS
 #define VULKAN_FUNCTIONS
-#include "vulkan.h"
+#include <vulkan/vulkan.h>
 
 namespace VulkanCookbook {
     #define EXPORTED_VULKAN_FUNCTION( name ) extern PFN_##name name;

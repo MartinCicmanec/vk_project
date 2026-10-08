@@ -29,6 +29,20 @@
 
 namespace VulkanCookbook {
 
+  bool ConnectWithVulkanLoaderLibrary( LIBRARY_TYPE & vulkan_library ) {
+    #if defined _WIN32
+      vulkan_library = LoadLibraryA( "vulkan-1.dll" );
+    #elif defined __linux
+      vulkan_library = dlopen( "libvulkan.so.1", RTLD_NOW );
+    #endif
+
+    if( vulkan_library == nullptr ) {
+      std::cout << "Could not connect with a Vulkan Runtime library." << std::endl;
+      return false;
+    }
+    return true;
+  }
+
   bool LoadFunctionExportedFromVulkanLoaderLibrary( LIBRARY_TYPE const & vulkan_library ) {
     #if defined _WIN32
     #define LoadFunction GetProcAddress
@@ -91,7 +105,7 @@ namespace VulkanCookbook {
   bool IsExtensionSupported( std::vector<VkExtensionProperties> const & available_extensions,
                              char const * const                         extension ) {
     for( auto & available_extension : available_extensions ) {
-      if( strstr( available_extension.extensionName, extension ) ) {
+      if( strcmp( available_extension.extensionName, extension ) == 0 ) {
         return true;
       }
     }
@@ -112,6 +126,7 @@ namespace VulkanCookbook {
     #include "ListOfVulkanFunctions.inl"
 
     // Load device-level functions from enabled extensions
+    #undef DEVICE_LEVEL_VULKAN_FUNCTION_FROM_EXTENSION
     #define DEVICE_LEVEL_VULKAN_FUNCTION_FROM_EXTENSION( name, extension )          \
     for( auto & enabled_extension : enabled_extensions ) {                      \
       if( std::string( enabled_extension ) == std::string( extension ) ) {      \
@@ -124,6 +139,8 @@ namespace VulkanCookbook {
       }                                                                         \
     }
 
+    #include "ListOfVulkanFunctions.inl"
+
     return true;
   }
 
@@ -131,7 +148,7 @@ namespace VulkanCookbook {
   bool IsLayerSupported( std::vector<VkLayerProperties> const & available_layers,
                              char const * const                         layer ) {
     for( auto & available_layer : available_layers ) {
-      if( strstr( available_layer.layerName, layer ) ) {
+      if( strcmp( available_layer.layerName, layer ) == 0 ) {
         return true;
       }
     }
@@ -149,17 +166,3 @@ namespace VulkanCookbook {
     }
   }
 } //VulkanCookbook
-
-VKAPI_ATTR VkBool32 VKAPI_CALL MyDebugReportCallback(
-      VkDebugReportFlagsEXT       flags,
-      VkDebugReportObjectTypeEXT  objectType,
-      uint64_t                    object,
-      size_t                      location,
-      int32_t                     messageCode,
-      const char*                 pLayerPrefix,
-      const char*                 pMessage,
-      void*                       pUserData)
-  {
-    std::cerr << pMessage << std::endl;
-    return VK_FALSE;
-  }

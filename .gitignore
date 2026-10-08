@@ -12,3 +12,7 @@ CTestTestfile.cmake
 vgcore.*
 .vscode
 lib
+
+# Downloaded assets (see "Assets" in README.md)
+models/
+textures/viking_room.png

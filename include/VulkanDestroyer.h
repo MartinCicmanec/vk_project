@@ -51,6 +51,10 @@ namespace VulkanCookbook {
     VkSurfaceKHR Handle;
   };
 
+  struct VkDebugUtilsMessengerEXTWrapper {
+    VkDebugUtilsMessengerEXT Handle;
+  };
+
   // Deleter functions
 
   template<class VkType>
@@ -72,6 +76,11 @@ namespace VulkanCookbook {
   template<>
   inline void DestroyVulkanObject<VkInstance, VkSurfaceKHRWrapper>( VkInstance instance, VkSurfaceKHRWrapper surface ) {
     vkDestroySurfaceKHR( instance, surface.Handle, nullptr );
+  }
+
+  template<>
+  inline void DestroyVulkanObject<VkInstance, VkDebugUtilsMessengerEXTWrapper>( VkInstance instance, VkDebugUtilsMessengerEXTWrapper messenger ) {
+    vkDestroyDebugUtilsMessengerEXT( instance, messenger.Handle, nullptr );
   }
 
 #define VK_DESTROYER_SPECIALIZATION( VkChild, VkDeleter )                                                   \
