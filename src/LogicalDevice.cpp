@@ -34,7 +34,7 @@ namespace VulkanCookbook {
     bool CreateLogicalDevice( VkPhysicalDevice                  physical_device,
                             std::vector<QueueInfo>            queue_infos,
                             std::vector<char const *> const & desired_extensions,
-                            VkPhysicalDeviceFeatures        * desired_features,
+                            VkPhysicalDeviceFeatures2 const * desired_features,
                             VkDevice                        & logical_device ) {
 
         std::vector<VkExtensionProperties> available_extensions;
@@ -64,7 +64,7 @@ namespace VulkanCookbook {
 
         VkDeviceCreateInfo device_create_info = {
             VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,               // VkStructureType                  sType
-            nullptr,                                            // const void                     * pNext
+            desired_features,                                   // const void                     * pNext (features, with their own pNext chain)
             0,                                                  // VkDeviceCreateFlags              flags
             static_cast<uint32_t>(queue_create_infos.size()),   // uint32_t                         queueCreateInfoCount
             queue_create_infos.data(),                          // const VkDeviceQueueCreateInfo  * pQueueCreateInfos
@@ -72,7 +72,7 @@ namespace VulkanCookbook {
             nullptr,                                            // const char * const             * ppEnabledLayerNames
             static_cast<uint32_t>(desired_extensions.size()),   // uint32_t                         enabledExtensionCount
             desired_extensions.data(),                          // const char * const             * ppEnabledExtensionNames
-            desired_features                                    // const VkPhysicalDeviceFeatures * pEnabledFeatures
+            nullptr                                             // const VkPhysicalDeviceFeatures * pEnabledFeatures (must be null when features are passed through pNext)
         };
 
         VkResult result = vkCreateDevice( physical_device, &device_create_info, nullptr, &logical_device );
@@ -89,58 +89,10 @@ namespace VulkanCookbook {
     }
 
 
-    bool CreateLogicalDeviceWithGeometryShadersAndGraphicsAndComputeQueues( VkInstance   instance,
-                                                                            VkDevice   & logical_device,
-                                                                            VkQueue    & graphics_queue,
-                                                                            VkQueue    & compute_queue ) {
-        std::vector<VkPhysicalDevice> physical_devices;
-        EnumerateAvailablePhysicalDevices( instance, physical_devices );
-
-        for( auto & physical_device : physical_devices ) {
-            VkPhysicalDeviceFeatures device_features;
-            VkPhysicalDeviceProperties device_properties;
-            GetFeaturesAndPropertiesOfPhysicalDevice( physical_device, device_features, device_properties );
-
-            if( !device_features.geometryShader ) {
-                continue;
-            } else {
-                device_features = {};
-                device_features.geometryShader = VK_TRUE;
-            }
-
-            uint32_t graphics_queue_family_index;
-            if( !SelectIndexOfQueueFamilyWithDesiredCapabilities( physical_device, VK_QUEUE_GRAPHICS_BIT, graphics_queue_family_index ) ) {
-                continue;
-            }
-
-            uint32_t compute_queue_family_index;
-            if( !SelectIndexOfQueueFamilyWithDesiredCapabilities( physical_device, VK_QUEUE_COMPUTE_BIT, compute_queue_family_index ) ) {
-                continue;
-            }
-
-            std::vector<QueueInfo> requested_queues = { { graphics_queue_family_index, { 1.0f } } };
-            if( graphics_queue_family_index != compute_queue_family_index ) {
-                requested_queues.push_back( { compute_queue_family_index, { 1.0f } } );
-            }
-
-            if( !CreateLogicalDevice( physical_device, requested_queues, {}, &device_features, logical_device ) ) {
-                continue;
-            } else {
-                if( !LoadDeviceLevelFunctions( logical_device, {} ) ) {
-                    return false;
-                }
-                GetDeviceQueue( logical_device, graphics_queue_family_index, 0, graphics_queue );
-                GetDeviceQueue( logical_device, compute_queue_family_index, 0, compute_queue );
-                return true;
-            }
-        }
-        return false;
-    }
-
     bool CreateLogicalDeviceWithWsiExtensionsEnabled( VkPhysicalDevice          physical_device,
                                                       std::vector< QueueInfo >    queue_infos,
                                                       std::vector<char const *> & desired_extensions,
-                                                      VkPhysicalDeviceFeatures  * desired_features,
+                                                      VkPhysicalDeviceFeatures2 const * desired_features,
                                                       VkDevice                  & logical_device ) {
         desired_extensions.emplace_back( VK_KHR_SWAPCHAIN_EXTENSION_NAME );
 

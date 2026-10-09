@@ -109,7 +109,7 @@ namespace VulkanCookbook {
             VK_MAKE_API_VERSION( 0, 1, 0, 0 ),                  // uint32_t                  applicationVersion
             "Vulkan Cookbook",                                  // const char              * pEngineName
             VK_MAKE_API_VERSION( 0, 1, 0, 0 ),                  // uint32_t                  engineVersion
-            VK_API_VERSION_1_0                                  // uint32_t                  apiVersion
+            VK_API_VERSION_1_3                                  // uint32_t                  apiVersion (highest version the application uses)
         };
 
         VkInstanceCreateInfo instance_create_info = {

@@ -38,20 +38,18 @@ namespace VulkanCookbook {
         std::vector<float> Priorities;
     };
 
+    // desired_features may have feature structures of newer Vulkan versions chained to its pNext
+    // (for example VkPhysicalDeviceVulkan13Features)
     bool CreateLogicalDevice( VkPhysicalDevice                  physical_device,
                               std::vector<QueueInfo>            queue_infos,
                               std::vector<char const *> const & desired_extensions,
-                              VkPhysicalDeviceFeatures        * desired_features,
+                              VkPhysicalDeviceFeatures2 const * desired_features,
                               VkDevice                        & logical_device );
     void GetDeviceQueue( VkDevice logical_device, uint32_t queue_family_index, uint32_t queue_index, VkQueue & queue );
-    bool CreateLogicalDeviceWithGeometryShadersAndGraphicsAndComputeQueues( VkInstance   instance,
-                                                                            VkDevice   & logical_device,
-                                                                            VkQueue    & graphics_queue,
-                                                                            VkQueue    & compute_queue );
     bool CreateLogicalDeviceWithWsiExtensionsEnabled( VkPhysicalDevice            physical_device,
                                                       std::vector<QueueInfo>      queue_infos,
                                                       std::vector<char const *> & desired_extensions,
-                                                      VkPhysicalDeviceFeatures  * desired_features,
+                                                      VkPhysicalDeviceFeatures2 const * desired_features,
                                                       VkDevice                  & logical_device );
 
 } // namespace VulkanCookbook

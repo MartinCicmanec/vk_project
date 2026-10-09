@@ -29,18 +29,38 @@
 #define TEXTURE
 
 #include "Common.h"
+#include "Allocator.h"
 
 namespace VulkanCookbook {
 
+    // Texture that can be sampled in a shader: the image with its mip levels, a view of it and a sampler.
+    // Declared in this order, so the view is destroyed before the image.
+    struct Texture {
+        AllocatedImage             Image;
+        VkDestroyer(VkImageView)   ImageView;
+        VkDestroyer(VkSampler)     Sampler;
+    };
+
     // Loads an image file (PNG, JPEG, BMP, ...) as 8 bit RGBA, uploads it through a staging buffer into a
-    // device local VK_FORMAT_R8G8B8A8_SRGB image and leaves it in VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+    // device local VK_FORMAT_R8G8B8A8_SRGB image, generates its mipmaps (if the device supports that for the format)
+    // and leaves all levels in VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL. The queue needs graphics support.
     bool CreateTextureImageFromFile( VkPhysicalDevice   physical_device,
+                                     VmaAllocator       allocator,
                                      VkDevice           logical_device,
                                      VkCommandPool      command_pool,
                                      VkQueue            queue,
                                      char const       * filename,
-                                     VkImage          & image,
-                                     VkDeviceMemory   & memory_object );
+                                     AllocatedImage   & image );
+    // CreateTextureImageFromFile plus a view of all mip levels and a sampler with linear filtering, repeating
+    // addressing and the given maximum anisotropy (requires the samplerAnisotropy device feature)
+    bool CreateTextureFromFile( VkPhysicalDevice   physical_device,
+                                VmaAllocator       allocator,
+                                VkDevice           logical_device,
+                                VkCommandPool      command_pool,
+                                VkQueue            queue,
+                                char const       * filename,
+                                float              max_anisotropy,
+                                Texture          & texture );
 
 } // namespace VulkanCookbook
 

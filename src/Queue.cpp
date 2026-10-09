@@ -34,27 +34,54 @@ namespace VulkanCookbook {
                                       std::vector<VkCommandBuffer> const   & command_buffers,
                                       std::vector<VkSemaphore> const       & signal_semaphores,
                                       VkFence                                fence ) {
-        std::vector<VkSemaphore>          wait_semaphore_handles;
-        std::vector<VkPipelineStageFlags> wait_semaphore_stages;
-
+        std::vector<VkSemaphoreSubmitInfo> wait_semaphore_submit_infos;
         for( auto & wait_semaphore_info : wait_semaphore_infos ) {
-            wait_semaphore_handles.emplace_back( wait_semaphore_info.Semaphore );
-            wait_semaphore_stages.emplace_back( wait_semaphore_info.WaitingStage );
+            wait_semaphore_submit_infos.push_back( {
+                VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,            // VkStructureType          sType
+                nullptr,                                            // const void             * pNext
+                wait_semaphore_info.Semaphore,                      // VkSemaphore              semaphore
+                0,                                                  // uint64_t                 value (only for timeline semaphores)
+                wait_semaphore_info.WaitingStage,                   // VkPipelineStageFlags2    stageMask
+                0                                                   // uint32_t                 deviceIndex
+            } );
         }
 
-        VkSubmitInfo submit_info = {
-            VK_STRUCTURE_TYPE_SUBMIT_INFO,                          // VkStructureType                sType
-            nullptr,                                                // const void                   * pNext
-            static_cast<uint32_t>(wait_semaphore_infos.size()),     // uint32_t                       waitSemaphoreCount
-            wait_semaphore_handles.data(),                          // const VkSemaphore            * pWaitSemaphores
-            wait_semaphore_stages.data(),                           // const VkPipelineStageFlags   * pWaitDstStageMask
-            static_cast<uint32_t>(command_buffers.size()),          // uint32_t                       commandBufferCount
-            command_buffers.data(),                                 // const VkCommandBuffer        * pCommandBuffers
-            static_cast<uint32_t>(signal_semaphores.size()),        // uint32_t                       signalSemaphoreCount
-            signal_semaphores.data()                                // const VkSemaphore            * pSignalSemaphores
+        std::vector<VkCommandBufferSubmitInfo> command_buffer_submit_infos;
+        for( auto & command_buffer : command_buffers ) {
+            command_buffer_submit_infos.push_back( {
+                VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO,       // VkStructureType    sType
+                nullptr,                                            // const void       * pNext
+                command_buffer,                                     // VkCommandBuffer    commandBuffer
+                0                                                   // uint32_t           deviceMask
+            } );
+        }
+
+        // Signaled when all of the submitted commands have finished
+        std::vector<VkSemaphoreSubmitInfo> signal_semaphore_submit_infos;
+        for( auto & signal_semaphore : signal_semaphores ) {
+            signal_semaphore_submit_infos.push_back( {
+                VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,            // VkStructureType          sType
+                nullptr,                                            // const void             * pNext
+                signal_semaphore,                                   // VkSemaphore              semaphore
+                0,                                                  // uint64_t                 value
+                VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT,               // VkPipelineStageFlags2    stageMask
+                0                                                   // uint32_t                 deviceIndex
+            } );
+        }
+
+        VkSubmitInfo2 submit_info = {
+            VK_STRUCTURE_TYPE_SUBMIT_INFO_2,                                // VkStructureType                    sType
+            nullptr,                                                        // const void                       * pNext
+            0,                                                              // VkSubmitFlags                      flags
+            static_cast<uint32_t>(wait_semaphore_submit_infos.size()),      // uint32_t                           waitSemaphoreInfoCount
+            wait_semaphore_submit_infos.data(),                             // const VkSemaphoreSubmitInfo      * pWaitSemaphoreInfos
+            static_cast<uint32_t>(command_buffer_submit_infos.size()),      // uint32_t                           commandBufferInfoCount
+            command_buffer_submit_infos.data(),                             // const VkCommandBufferSubmitInfo  * pCommandBufferInfos
+            static_cast<uint32_t>(signal_semaphore_submit_infos.size()),    // uint32_t                           signalSemaphoreInfoCount
+            signal_semaphore_submit_infos.data()                            // const VkSemaphoreSubmitInfo      * pSignalSemaphoreInfos
         };
 
-        VkResult result = vkQueueSubmit( queue, 1, &submit_info, fence );
+        VkResult result = vkQueueSubmit2( queue, 1, &submit_info, fence );
         if( VK_SUCCESS != result ) {
             std::cout << "Error occurred during command buffer submission." << std::endl;
             return false;

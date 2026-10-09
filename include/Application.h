@@ -29,24 +29,18 @@
 #define APPLICATION
 
 #include "Common.h"
-#include "Vertex.h"
-#include <chrono>
-
-struct GLFWwindow;
+#include "AppWindow.h"
+#include "VulkanContext.h"
+#include "SwapchainTargets.h"
+#include "Renderer.h"
 
 namespace VulkanCookbook {
 
-    // Runs the given function when it is destroyed.
-    // Used for non-Vulkan resources, so they are released in the right order relative to the VkDestroyer members.
-    struct ScopeGuard {
-        std::function<void()> Function;
-        ~ScopeGuard() { if( Function ) { Function(); } }
-    };
-
+    // Owns the parts of the program and runs the main loop
     class Application {
     public:
-        // Number of frames the CPU may record ahead of the GPU
-        static constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 2;
+        // Upper limit for multisample anti-aliasing - the device may support less (but always at least 4)
+        static constexpr VkSampleCountFlagBits MAX_MSAA_SAMPLES = VK_SAMPLE_COUNT_4_BIT;
 
         Application( bool enable_validation,
                      bool enable_debug_callbacks );
@@ -56,124 +50,15 @@ namespace VulkanCookbook {
         bool Run();
 
     private:
-        bool InitVulkanLoader();
-        bool CreateInstance();
-        bool SetupDebugMessenger();
-        bool ListPhysicalDevices();
-        void CreateGeometryShaderDeviceDemo();
-        bool InitWindow();
-        bool CreateSurface();
-        bool PickPhysicalDevice();
-        bool CreateDevice();
-        bool SelectSwapchainSettings();
-        bool SelectDepthFormat();
-        bool CreateDepthResources();
-        bool CreateSwapchainObjects();
-        bool CreateTriangleRenderPass();
-        bool CreateUniformDescriptorSetLayout();
-        bool CreatePipeline();
-        bool CreateFramebuffers();
-        bool CreateCommandBuffers();
-        bool LoadModel();
-        bool CreateVertexAndIndexBuffers();
-        bool CreateTexture();
-        bool CreateUniformBuffers();
-        bool CreateUniformDescriptorSets();
-        void UpdateUniformBuffer( uint32_t frame_index );
-        bool CreateSyncObjects();
-        bool CreateRenderFinishedSemaphores();
-        bool RecreateSwapchain();
-        bool DrawFrame();
+        bool               EnableValidation;
+        bool               EnableDebugCallbacks;
 
-        static void FramebufferResizeCallback( GLFWwindow * window,
-                                               int          width,
-                                               int          height );
-
-        bool                                            EnableValidation;
-        bool                                            EnableDebugCallbacks;
-
-        // Members are destroyed in reverse order of declaration, so they are declared in the order they are created:
-        // sync objects -> command pool -> framebuffers -> pipeline -> pipeline layout -> render pass -> image views
-        // -> swapchain -> device -> surface -> window -> GLFW -> debug messenger -> instance -> Vulkan library
-        LIBRARY_TYPE                                    VulkanLibrary = nullptr;
-        ScopeGuard                                      ReleaseVulkanLibrary;
-
-        VkDestroyer(VkInstance)                         Instance;
-        VkDestroyer(VkDebugUtilsMessengerEXT)           DebugMessenger;
-        std::vector<VkPhysicalDevice>                   PhysicalDevices;
-
-        ScopeGuard                                      TerminateGlfw;
-        GLFWwindow                                    * GlfwWindow = nullptr;
-        ScopeGuard                                      DestroyGlfwWindow;
-
-        VkDestroyer(VkSurfaceKHR)                       PresentationSurface;
-        VkPhysicalDevice                                PhysicalDevice = VK_NULL_HANDLE;
-        uint32_t                                        QueueFamilyIndex = 0;
-        VkDestroyer(VkDevice)                           LogicalDevice;
-        // Queue used for both graphics commands and presentation
-        VkQueue                                         GraphicsAndPresentQueue = VK_NULL_HANDLE;
-
-        VkPresentModeKHR                                PresentMode = VK_PRESENT_MODE_FIFO_KHR;
-        VkSurfaceFormatKHR                              SwapchainSurfaceFormat = {};
-        VkExtent2D                                      SwapchainExtent = {};
-        VkDestroyer(VkSwapchainKHR)                     Swapchain;
-        // Swapchain images are owned by the swapchain and destroyed together with it
-        std::vector<VkImage>                            SwapchainImages;
-        std::vector<VkDestroyer(VkImageView)>           SwapchainImageViews;
-
-        // One depth image shared by all framebuffers, recreated together with the swapchain
-        VkFormat                                        DepthFormat = VK_FORMAT_UNDEFINED;
-        VkDestroyer(VkDeviceMemory)                     DepthImageMemory;
-        VkDestroyer(VkImage)                            DepthImage;
-        VkDestroyer(VkImageView)                        DepthImageView;
-
-        VkDestroyer(VkRenderPass)                       RenderPass;
-        VkDestroyer(VkDescriptorSetLayout)              DescriptorSetLayout;
-        VkDestroyer(VkPipelineLayout)                   PipelineLayout;
-        VkDestroyer(VkPipeline)                         GraphicsPipeline;
-        std::vector<VkDestroyer(VkFramebuffer)>         SwapchainFramebuffers;
-
-        VkDestroyer(VkCommandPool)                      CommandPool;
-        // Command buffers are freed together with the pool
-        std::vector<VkCommandBuffer>                    CommandBuffers;
-        // For short-lived command buffers that upload data (buffer copies, texture uploads)
-        VkDestroyer(VkCommandPool)                      TransferCommandPool;
-
-        // Geometry loaded from the model file - 32 bit indices, a model can have more than 65535 vertices
-        std::vector<Vertex>                             ModelVertices;
-        std::vector<uint32_t>                           ModelIndices;
-
-        // Memory is declared before its buffer, so it is freed after the buffer is destroyed
-        VkDestroyer(VkDeviceMemory)                     VertexBufferMemory;
-        VkDestroyer(VkBuffer)                           VertexBuffer;
-        VkDestroyer(VkDeviceMemory)                     IndexBufferMemory;
-        VkDestroyer(VkBuffer)                           IndexBuffer;
-
-        VkDestroyer(VkDeviceMemory)                     TextureImageMemory;
-        VkDestroyer(VkImage)                            TextureImage;
-        VkDestroyer(VkImageView)                        TextureImageView;
-        VkDestroyer(VkSampler)                          TextureSampler;
-
-        // One uniform buffer per frame in flight, persistently mapped
-        std::vector<VkDestroyer(VkDeviceMemory)>        UniformBuffersMemory;
-        std::vector<VkDestroyer(VkBuffer)>              UniformBuffers;
-        std::vector<void *>                             UniformBuffersMapped;
-
-        // Descriptor sets are freed together with the pool - one per frame in flight
-        VkDestroyer(VkDescriptorPool)                   DescriptorPool;
-        std::vector<VkDescriptorSet>                    DescriptorSets;
-
-        // One per frame in flight
-        std::vector<VkDestroyer(VkSemaphore)>           ImageAvailableSemaphores;
-        std::vector<VkDestroyer(VkFence)>               InFlightFences;
-        // One per swapchain image
-        std::vector<VkDestroyer(VkSemaphore)>           RenderFinishedSemaphores;
-
-        uint32_t                                        CurrentFrame = 0;
-        // Set by the GLFW callback - not every platform reports a resize through VK_ERROR_OUT_OF_DATE_KHR
-        bool                                            FramebufferResized = false;
-        // steady_clock is monotonic - high_resolution_clock may be the system clock, which can jump
-        std::chrono::steady_clock::time_point           StartTime;
+        // Members are destroyed in reverse order of declaration, and every part needs the ones before it:
+        // renderer -> swapchain targets -> Vulkan context (allocator, device, surface, instance) -> window
+        AppWindow          MainWindow;
+        VulkanContext      Context;
+        SwapchainTargets   Targets;
+        Renderer           SceneRenderer;
     };
 
 } // namespace VulkanCookbook

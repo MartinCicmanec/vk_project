@@ -51,7 +51,7 @@ namespace VulkanCookbook {
             VK_FALSE,                                   // VkBool32                 compareEnable
             VK_COMPARE_OP_ALWAYS,                       // VkCompareOp              compareOp
             0.0f,                                       // float                    minLod
-            0.0f,                                       // float                    maxLod
+            VK_LOD_CLAMP_NONE,                          // float                    maxLod (no limit - use every level the image has)
             VK_BORDER_COLOR_INT_OPAQUE_BLACK,           // VkBorderColor            borderColor
             VK_FALSE                                    // VkBool32                 unnormalizedCoordinates
         };

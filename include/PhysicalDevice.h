@@ -35,19 +35,17 @@ namespace VulkanCookbook {
 
     bool EnumerateAvailablePhysicalDevices( VkInstance instance, std::vector<VkPhysicalDevice> & available_devices );
     bool CheckAvailableDeviceExtensions( VkPhysicalDevice physical_device, std::vector<VkExtensionProperties> & available_extensions );
-    void GetFeaturesAndPropertiesOfPhysicalDevice( VkPhysicalDevice             physical_device,
-                                                   VkPhysicalDeviceFeatures   & device_features,
-                                                   VkPhysicalDeviceProperties & device_properties );
     bool CheckAvailableQueueFamiliesAndTheirProperties( VkPhysicalDevice physical_device, std::vector<VkQueueFamilyProperties> & queue_families );
-    bool SelectIndexOfQueueFamilyWithDesiredCapabilities( VkPhysicalDevice   physical_device,
-                                                          VkQueueFlags       desired_capabilities,
-                                                          uint32_t         & queue_family_index );
     // First of the candidate formats (most desirable first) that supports the given features with the given tiling
     bool SelectSupportedFormat( VkPhysicalDevice              physical_device,
                                 std::vector<VkFormat> const & candidates,
                                 VkImageTiling                 tiling,
                                 VkFormatFeatureFlags          features,
                                 VkFormat                    & format );
+    // Highest sample count, not above upper_limit, that the device supports for both color and depth attachments.
+    // Every device supports at least VK_SAMPLE_COUNT_4_BIT for both.
+    VkSampleCountFlagBits GetMaxUsableSampleCount( VkPhysicalDevice        physical_device,
+                                                   VkSampleCountFlagBits   upper_limit );
 
 } // namespace VulkanCookbook
 

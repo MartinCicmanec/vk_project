@@ -29,29 +29,16 @@
 #define BUFFER
 
 #include "Common.h"
+#include "Allocator.h"
 
 namespace VulkanCookbook {
 
-    bool CreateBuffer( VkDevice             logical_device,
+    // Buffer with its memory. For MemoryLocation::HostVisibleMapped the CPU can write to it (CopyDataToBuffer).
+    bool CreateBuffer( VmaAllocator         allocator,
                        VkDeviceSize         size,
                        VkBufferUsageFlags   usage,
-                       VkBuffer           & buffer );
-    // Index of a memory type that is allowed by memory_type_bits and has all of the desired properties
-    bool SelectMemoryType( VkPhysicalDevice        physical_device,
-                           uint32_t                memory_type_bits,
-                           VkMemoryPropertyFlags   memory_properties,
-                           uint32_t              & memory_type_index );
-    bool AllocateAndBindMemoryObjectToBuffer( VkPhysicalDevice        physical_device,
-                                              VkDevice                logical_device,
-                                              VkBuffer                buffer,
-                                              VkMemoryPropertyFlags   memory_properties,
-                                              VkDeviceMemory        & memory_object );
-    // Requires host coherent memory - no explicit flush is done
-    bool MapUpdateAndUnmapHostVisibleMemory( VkDevice         logical_device,
-                                             VkDeviceMemory   memory_object,
-                                             VkDeviceSize     offset,
-                                             VkDeviceSize     data_size,
-                                             void const     * data );
+                       MemoryLocation       memory_location,
+                       AllocatedBuffer    & buffer );
     // Records, submits and waits for a one-time copy command buffer allocated from command_pool
     bool CopyBuffer( VkDevice        logical_device,
                      VkCommandPool   command_pool,
@@ -59,30 +46,16 @@ namespace VulkanCookbook {
                      VkBuffer        source_buffer,
                      VkBuffer        destination_buffer,
                      VkDeviceSize    size );
-    // Buffer in host visible and host coherent memory, which the CPU can write to directly
-    bool CreateHostVisibleBuffer( VkPhysicalDevice     physical_device,
-                                  VkDevice             logical_device,
-                                  VkDeviceSize         size,
-                                  VkBufferUsageFlags   usage,
-                                  VkBuffer           & buffer,
-                                  VkDeviceMemory     & memory_object );
-    // Memory stays mapped until it is unmapped or freed ("persistent mapping")
-    bool MapMemory( VkDevice         logical_device,
-                    VkDeviceMemory   memory_object,
-                    VkDeviceSize     offset,
-                    VkDeviceSize     size,
-                    void         * & pointer );
     // Creates a buffer in device local memory and fills it with data through a temporary staging buffer.
     // usage gets VK_BUFFER_USAGE_TRANSFER_DST_BIT added automatically.
-    bool CreateDeviceLocalBufferWithData( VkPhysicalDevice     physical_device,
+    bool CreateDeviceLocalBufferWithData( VmaAllocator         allocator,
                                           VkDevice             logical_device,
                                           VkCommandPool        command_pool,
                                           VkQueue              queue,
                                           void const         * data,
                                           VkDeviceSize         data_size,
                                           VkBufferUsageFlags   usage,
-                                          VkBuffer           & buffer,
-                                          VkDeviceMemory     & memory_object );
+                                          AllocatedBuffer    & buffer );
 
 } // namespace VulkanCookbook
 

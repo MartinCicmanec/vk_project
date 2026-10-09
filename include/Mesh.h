@@ -23,23 +23,32 @@
 // Author:   Pawel Lapinski
 // LinkedIn: https://www.linkedin.com/in/pawel-lapinski-84522329
 //
-// Framebuffer
+// Mesh
 
-#ifndef FRAMEBUFFER
-#define FRAMEBUFFER
+#ifndef MESH
+#define MESH
 
 #include "Common.h"
+#include "Allocator.h"
 
 namespace VulkanCookbook {
 
-    bool CreateFramebuffer( VkDevice                         logical_device,
-                            VkRenderPass                     render_pass,
-                            std::vector<VkImageView> const & attachments,
-                            uint32_t                         width,
-                            uint32_t                         height,
-                            uint32_t                         layers,
-                            VkFramebuffer                  & framebuffer );
+    // Geometry on the GPU: vertices (see Vertex.h) and 32 bit indices in device local buffers
+    struct Mesh {
+        AllocatedBuffer   VertexBuffer;
+        AllocatedBuffer   IndexBuffer;
+        uint32_t          IndexCount = 0;
+    };
+
+    // Loads an OBJ file (see LoadModelFromObjFile) and uploads its vertices and indices through staging buffers.
+    // The queue is used for the transfers - every queue family with graphics support also supports them.
+    bool CreateMeshFromObjFile( VmaAllocator        allocator,
+                                VkDevice            logical_device,
+                                VkCommandPool       command_pool,
+                                VkQueue             queue,
+                                std::string const & filename,
+                                Mesh              & mesh );
 
 } // namespace VulkanCookbook
 
-#endif // FRAMEBUFFER
+#endif // MESH

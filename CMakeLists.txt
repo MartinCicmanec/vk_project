@@ -71,6 +71,9 @@ find_package(glfw3 REQUIRED)
 # Header-only vector / matrix math
 find_package(glm CONFIG REQUIRED)
 
+# Vulkan Memory Allocator (header-only): arch AUR 'vulkan-memory-allocator', vcpkg 'vulkan-memory-allocator'
+find_package(VulkanMemoryAllocator CONFIG REQUIRED)
+
 # Header-only image loading (stb_image.h). Arch installs it to /usr/include/stb, vcpkg to its include directory.
 find_path(STB_INCLUDE_DIR NAMES stb_image.h PATH_SUFFIXES stb)
 if( NOT STB_INCLUDE_DIR )
@@ -84,7 +87,7 @@ file(GLOB HEADER_FILES "include/*.h" "include/*.inl")
 add_executable(main ${MAIN_SOURCES})
 
 # The Vulkan loader is loaded at runtime (LoadLibrary / dlopen), so it is not linked here.
-target_link_libraries(main PUBLIC ${PLATFORM_LIBRARY} glfw glm::glm)
+target_link_libraries(main PUBLIC ${PLATFORM_LIBRARY} glfw glm::glm GPUOpen::VulkanMemoryAllocator)
 
 # Vulkan's clip space depth range is 0..1, GLM's default (from OpenGL) is -1..1.
 # Defined for the whole target, so every file sees the same GLM configuration.

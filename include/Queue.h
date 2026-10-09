@@ -35,9 +35,10 @@ namespace VulkanCookbook {
 
     struct WaitSemaphoreInfo {
         VkSemaphore           Semaphore;
-        VkPipelineStageFlags  WaitingStage;
+        VkPipelineStageFlags2 WaitingStage;   // Stage of the submitted commands that waits for the semaphore
     };
 
+    // Uses vkQueueSubmit2 (Vulkan 1.3 synchronization2)
     bool SubmitCommandBuffersToQueue( VkQueue                                queue,
                                       std::vector<WaitSemaphoreInfo> const & wait_semaphore_infos,
                                       std::vector<VkCommandBuffer> const   & command_buffers,

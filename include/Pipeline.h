@@ -42,15 +42,18 @@ namespace VulkanCookbook {
                                  VkPipeline                         & graphics_pipeline );
     // Pipeline from the vulkan-tutorial.com "Graphics pipeline basics" chapter:
     // given vertex input, triangle list, dynamic viewport and scissor, back-face culling with counter-clockwise front faces,
-    // depth test and write (closer fragments win), no multisampling, no blending.
-    // The render pass must have a depth attachment.
+    // depth test and write (closer fragments win), given number of samples (without sample shading), no blending.
+    // For dynamic rendering (Vulkan 1.3): instead of a render pass, the pipeline is created for the formats of the
+    // attachments it will be used with - one color attachment and a depth attachment, both with the given sample count.
     bool CreateTrianglePipeline( VkDevice                                               logical_device,
-                                 VkRenderPass                                           render_pass,
+                                 VkFormat                                               color_attachment_format,
+                                 VkFormat                                               depth_attachment_format,
                                  VkPipelineLayout                                       pipeline_layout,
                                  VkShaderModule                                         vertex_shader_module,
                                  VkShaderModule                                         fragment_shader_module,
                                  std::vector<VkVertexInputBindingDescription> const   & vertex_binding_descriptions,
                                  std::vector<VkVertexInputAttributeDescription> const & vertex_attribute_descriptions,
+                                 VkSampleCountFlagBits                                  samples,
                                  VkPipeline                                           & graphics_pipeline );
 
 } // namespace VulkanCookbook

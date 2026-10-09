@@ -32,12 +32,26 @@
 
 namespace VulkanCookbook {
 
-    // Commands from the vulkan-tutorial.com "Command buffers" and "Vertex buffers" chapters:
-    // clear color to black and depth to 1.0 (the far plane), bind the triangle pipeline, the vertex / index buffers (binding 0, uint32_t indices) and the descriptor set (set 0),
-    // set viewport and scissor to the whole framebuffer, draw index_count indices
-    bool RecordTriangleCommandBuffer( VkCommandBuffer   command_buffer,
-                                      VkRenderPass      render_pass,
-                                      VkFramebuffer     framebuffer,
+    // The images one frame is rendered with (dynamic rendering - there are no render pass and framebuffer objects)
+    struct FrameAttachments {
+        VkImage       SwapchainImage;           // Acquired swapchain image: resolve target, presented afterwards
+        VkImageView   SwapchainImageView;
+        VkImage       ColorImage;               // Multisampled image everything is drawn to, in COLOR_ATTACHMENT_OPTIMAL
+        VkImageView   ColorImageView;
+        VkImage       DepthImage;               // Multisampled depth image, in DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+        VkImageView   DepthImageView;
+        VkFormat      DepthFormat;
+    };
+
+    // Commands of one frame, with dynamic rendering (Vulkan 1.3):
+    //   - barriers: the swapchain image becomes a color attachment, the shared multisampled color and depth images wait
+    //     for the previous frame (a render pass did this implicitly through its layouts and subpass dependencies)
+    //   - rendering: clear color to black and depth to 1.0 (the far plane), bind the triangle pipeline, the vertex / index
+    //     buffers (binding 0, uint32_t indices) and the descriptor set (set 0), set viewport and scissor to the whole
+    //     image, draw index_count indices; the multisampled color image is resolved into the swapchain image at the end
+    //   - barrier: the swapchain image becomes presentable
+    bool RecordTriangleCommandBuffer( VkCommandBuffer            command_buffer,
+                                      FrameAttachments const   & attachments,
                                       VkExtent2D        extent,
                                       VkPipeline        graphics_pipeline,
                                       VkBuffer          vertex_buffer,

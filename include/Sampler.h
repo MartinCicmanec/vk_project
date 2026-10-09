@@ -32,7 +32,7 @@
 
 namespace VulkanCookbook {
 
-    // Normalized coordinates, no mipmapping, no comparison. max_anisotropy is ignored if anisotropy is disabled -
+    // Normalized coordinates, all mip levels of the image with linear blending between them, no comparison. max_anisotropy is ignored if anisotropy is disabled -
     // enabling it requires the samplerAnisotropy device feature.
     bool CreateSampler( VkDevice               logical_device,
                         VkFilter               filter,

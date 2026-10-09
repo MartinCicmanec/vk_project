@@ -87,13 +87,6 @@ namespace VulkanCookbook {
         return true;
     }
 
-    void GetFeaturesAndPropertiesOfPhysicalDevice( VkPhysicalDevice             physical_device,
-                                                 VkPhysicalDeviceFeatures   & device_features,
-                                                 VkPhysicalDeviceProperties & device_properties ) {
-        vkGetPhysicalDeviceFeatures( physical_device, &device_features );
-        vkGetPhysicalDeviceProperties( physical_device, &device_properties );
-    }
-
     bool CheckAvailableQueueFamiliesAndTheirProperties( VkPhysicalDevice physical_device,
                                                         std::vector<VkQueueFamilyProperties> & queue_families ) {
         uint32_t queue_families_count = 0;
@@ -112,24 +105,6 @@ namespace VulkanCookbook {
         }
 
         return true;
-    }
-
-    bool SelectIndexOfQueueFamilyWithDesiredCapabilities( VkPhysicalDevice physical_device,
-                                                        VkQueueFlags desired_capabilities,
-                                                        uint32_t & queue_family_index ) {
-        std::vector<VkQueueFamilyProperties> queue_families;
-        if( !CheckAvailableQueueFamiliesAndTheirProperties( physical_device, queue_families ) ) {
-            return false;
-        }
-
-        for( uint32_t index = 0; index < static_cast<uint32_t>(queue_families.size()); ++index ) {
-            if( (queue_families[index].queueCount > 0) && ((queue_families[index].queueFlags & desired_capabilities) == desired_capabilities) ) {
-                queue_family_index = index;
-                return true;
-            }
-        }
-
-        return false;
     }
 
     bool SelectSupportedFormat( VkPhysicalDevice              physical_device,
@@ -151,6 +126,23 @@ namespace VulkanCookbook {
 
         std::cout << "Could not find a supported format." << std::endl;
         return false;
+    }
+
+    VkSampleCountFlagBits GetMaxUsableSampleCount( VkPhysicalDevice        physical_device,
+                                                   VkSampleCountFlagBits   upper_limit ) {
+        VkPhysicalDeviceProperties device_properties;
+        vkGetPhysicalDeviceProperties( physical_device, &device_properties );
+
+        VkSampleCountFlags counts = device_properties.limits.framebufferColorSampleCounts &
+                                    device_properties.limits.framebufferDepthSampleCounts;
+
+        // Sample count flags are powers of two (1, 2, 4, ... 64), so they can be compared and halved
+        for( uint32_t samples = VK_SAMPLE_COUNT_64_BIT; samples > VK_SAMPLE_COUNT_1_BIT; samples /= 2 ) {
+            if( (samples <= static_cast<uint32_t>(upper_limit)) && (counts & samples) ) {
+                return static_cast<VkSampleCountFlagBits>(samples);
+            }
+        }
+        return VK_SAMPLE_COUNT_1_BIT;
     }
 
 } // namespace VulkanCookbook

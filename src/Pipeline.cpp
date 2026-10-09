@@ -64,12 +64,14 @@ namespace VulkanCookbook {
     }
 
     bool CreateTrianglePipeline( VkDevice                                               logical_device,
-                                 VkRenderPass                                           render_pass,
+                                 VkFormat                                               color_attachment_format,
+                                 VkFormat                                               depth_attachment_format,
                                  VkPipelineLayout                                       pipeline_layout,
                                  VkShaderModule                                         vertex_shader_module,
                                  VkShaderModule                                         fragment_shader_module,
                                  std::vector<VkVertexInputBindingDescription> const   & vertex_binding_descriptions,
                                  std::vector<VkVertexInputAttributeDescription> const & vertex_attribute_descriptions,
+                                 VkSampleCountFlagBits                                  samples,
                                  VkPipeline                                           & graphics_pipeline ) {
         // Shader stages
         std::vector<VkPipelineShaderStageCreateInfo> shader_stages = {
@@ -154,12 +156,12 @@ namespace VulkanCookbook {
             1.0f                                                        // float                                    lineWidth
         };
 
-        // Multisampling - disabled
+        // Multisampling - several samples per pixel for smoother geometry edges, the fragment shader still runs once per pixel
         VkPipelineMultisampleStateCreateInfo multisample_state = {
             VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,   // VkStructureType                          sType
             nullptr,                                                    // const void                             * pNext
             0,                                                          // VkPipelineMultisampleStateCreateFlags    flags
-            VK_SAMPLE_COUNT_1_BIT,                                      // VkSampleCountFlagBits                    rasterizationSamples
+            samples,                                                    // VkSampleCountFlagBits                    rasterizationSamples
             VK_FALSE,                                                   // VkBool32                                 sampleShadingEnable
             1.0f,                                                       // float                                    minSampleShading
             nullptr,                                                    // const VkSampleMask                     * pSampleMask
@@ -206,9 +208,20 @@ namespace VulkanCookbook {
             { 0.0f, 0.0f, 0.0f, 0.0f }                                  // float                                        blendConstants[4]
         };
 
+        // Dynamic rendering: the attachment formats replace the render pass and subpass
+        VkPipelineRenderingCreateInfo rendering_create_info = {
+            VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,           // VkStructureType    sType
+            nullptr,                                                    // const void       * pNext
+            0,                                                          // uint32_t           viewMask
+            1,                                                          // uint32_t           colorAttachmentCount
+            &color_attachment_format,                                   // const VkFormat   * pColorAttachmentFormats
+            depth_attachment_format,                                    // VkFormat           depthAttachmentFormat
+            VK_FORMAT_UNDEFINED                                         // VkFormat           stencilAttachmentFormat (stencil is not used)
+        };
+
         VkGraphicsPipelineCreateInfo graphics_pipeline_create_info = {
             VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,            // VkStructureType                                sType
-            nullptr,                                                    // const void                                   * pNext
+            &rendering_create_info,                                     // const void                                   * pNext
             0,                                                          // VkPipelineCreateFlags                          flags
             static_cast<uint32_t>(shader_stages.size()),                // uint32_t                                       stageCount
             shader_stages.data(),                                       // const VkPipelineShaderStageCreateInfo        * pStages
@@ -222,7 +235,7 @@ namespace VulkanCookbook {
             &color_blend_state,                                         // const VkPipelineColorBlendStateCreateInfo    * pColorBlendState
             &dynamic_state,                                             // const VkPipelineDynamicStateCreateInfo       * pDynamicState
             pipeline_layout,                                            // VkPipelineLayout                               layout
-            render_pass,                                                // VkRenderPass                                   renderPass
+            VK_NULL_HANDLE,                                             // VkRenderPass                                   renderPass (none with dynamic rendering)
             0,                                                          // uint32_t                                       subpass
             VK_NULL_HANDLE,                                             // VkPipeline                                     basePipelineHandle
             -1                                                          // int32_t                                        basePipelineIndex

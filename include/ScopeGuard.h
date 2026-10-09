@@ -23,22 +23,22 @@
 // Author:   Pawel Lapinski
 // LinkedIn: https://www.linkedin.com/in/pawel-lapinski-84522329
 //
-//
-// Render Pass
+// Scope Guard
 
-#ifndef RENDER_PASS
-#define RENDER_PASS
+#ifndef SCOPE_GUARD
+#define SCOPE_GUARD
 
-#include "Common.h"
+#include <functional>
 
 namespace VulkanCookbook {
 
-    bool CreateRenderPass( VkDevice                                     logical_device,
-                           std::vector<VkAttachmentDescription> const & attachments_descriptions,
-                           std::vector<VkSubpassDescription> const    & subpass_descriptions,
-                           std::vector<VkSubpassDependency> const     & subpass_dependencies,
-                           VkRenderPass                               & render_pass );
+    // Runs the given function when it is destroyed.
+    // Used for non-Vulkan resources, so they are released in the right order relative to the VkDestroyer members.
+    struct ScopeGuard {
+        std::function<void()> Function;
+        ~ScopeGuard() { if( Function ) { Function(); } }
+    };
 
 } // namespace VulkanCookbook
 
-#endif // RENDER_PASS
+#endif // SCOPE_GUARD

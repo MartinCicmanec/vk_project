@@ -4,7 +4,7 @@ Another resource [Vulkan Programming Guide](https://www.amazon.com/Vulkan-Progra
 
 ## Dependencies
 sudo apt-get install libvulkan-dev vulkan-validationlayers-dev libglfw3-dev vulkan-sdk
-yay -S vulkan-icd-loader vulkan-headers vulkan-validation-layers glfw shaderc glm stb
+yay -S vulkan-icd-loader vulkan-headers vulkan-validation-layers glfw shaderc glm stb vulkan-memory-allocator
 
 https://vulkan.lunarg.com/sdk/home#linux
 
@@ -34,7 +34,7 @@ The window system defaults to Wayland. For an X11 session configure with `-DVK_U
 1. [Visual Studio 2022](https://visualstudio.microsoft.com/) with the **Desktop development with C++** workload (includes MSVC and CMake).
 2. [Vulkan SDK](https://vulkan.lunarg.com/sdk/home#windows) - the installer sets the `VULKAN_SDK` environment variable (needed by CMake) and provides the validation layers.
 3. An up to date GPU driver - it provides `vulkan-1.dll`, which the program loads at runtime.
-4. [vcpkg](https://github.com/microsoft/vcpkg) for GLFW, GLM and stb.
+4. [vcpkg](https://github.com/microsoft/vcpkg) for GLFW, GLM, stb and Vulkan Memory Allocator.
 
 ### Environment setup
 In a *Developer PowerShell for VS 2022*:
@@ -42,7 +42,7 @@ In a *Developer PowerShell for VS 2022*:
 git clone https://github.com/microsoft/vcpkg C:\vcpkg
 C:\vcpkg\bootstrap-vcpkg.bat
 setx VCPKG_ROOT C:\vcpkg
-C:\vcpkg\vcpkg install glfw3:x64-windows glm:x64-windows stb:x64-windows
+C:\vcpkg\vcpkg install glfw3:x64-windows glm:x64-windows stb:x64-windows vulkan-memory-allocator:x64-windows
 ```
 Open a new terminal afterwards so `VCPKG_ROOT` is picked up.
 
