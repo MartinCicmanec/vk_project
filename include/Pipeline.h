@@ -55,6 +55,46 @@ namespace VulkanCookbook {
                                  std::vector<VkVertexInputAttributeDescription> const & vertex_attribute_descriptions,
                                  VkSampleCountFlagBits                                  samples,
                                  VkPipeline                                           & graphics_pipeline );
+    // Pipeline for the particles of the "Compute Shader" chapter: given vertex input, point list (the vertex shader sets
+    // gl_PointSize), dynamic viewport and scissor, no culling, no depth, alpha blending, given number of samples.
+    // For dynamic rendering with one color attachment of the given format and sample count, and no depth attachment.
+    bool CreateParticlePipeline( VkDevice                                               logical_device,
+                                 VkFormat                                               color_attachment_format,
+                                 VkPipelineLayout                                       pipeline_layout,
+                                 VkShaderModule                                         vertex_shader_module,
+                                 VkShaderModule                                         fragment_shader_module,
+                                 std::vector<VkVertexInputBindingDescription> const   & vertex_binding_descriptions,
+                                 std::vector<VkVertexInputAttributeDescription> const & vertex_attribute_descriptions,
+                                 VkSampleCountFlagBits                                  samples,
+                                 VkPipeline                                           & graphics_pipeline );
+    // Pipeline for a background drawn behind everything (the sky of the water scene): no vertex input, the vertex shader
+    // makes one full-screen triangle at depth 1.0 from 3 vertices; no culling; depth test LESS_OR_EQUAL without writing,
+    // so after the scene only the pixels nothing was drawn to are shaded; no blending; given number of samples.
+    // For dynamic rendering with one color and one depth attachment.
+    bool CreateBackgroundPipeline( VkDevice                logical_device,
+                                   VkFormat                color_attachment_format,
+                                   VkFormat                depth_attachment_format,
+                                   VkPipelineLayout        pipeline_layout,
+                                   VkShaderModule          vertex_shader_module,
+                                   VkShaderModule          fragment_shader_module,
+                                   VkSampleCountFlagBits   samples,
+                                   VkPipeline            & graphics_pipeline );
+    // Pipeline for transparent camera-facing quads built by the vertex shader (the splashes of the water scene): no vertex
+    // input, triangle list, no culling, depth test LESS without writing (hidden behind solid objects, but not hiding
+    // each other), alpha blending, given number of samples. For dynamic rendering with one color and one depth attachment.
+    bool CreateBillboardPipeline( VkDevice                logical_device,
+                                  VkFormat                color_attachment_format,
+                                  VkFormat                depth_attachment_format,
+                                  VkPipelineLayout        pipeline_layout,
+                                  VkShaderModule          vertex_shader_module,
+                                  VkShaderModule          fragment_shader_module,
+                                  VkSampleCountFlagBits   samples,
+                                  VkPipeline            & graphics_pipeline );
+    // Compute pipeline with the "main" entry point of the given compute shader
+    bool CreateComputePipeline( VkDevice           logical_device,
+                                VkPipelineLayout   pipeline_layout,
+                                VkShaderModule     compute_shader_module,
+                                VkPipeline       & compute_pipeline );
 
 } // namespace VulkanCookbook
 

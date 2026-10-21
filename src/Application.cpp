@@ -29,10 +29,12 @@
 
 namespace VulkanCookbook {
 
-    Application::Application( bool enable_validation,
-                              bool enable_debug_callbacks ) :
+    Application::Application( bool        enable_validation,
+                              bool        enable_debug_callbacks,
+                              DemoScene   scene ) :
         EnableValidation( enable_validation ),
-        EnableDebugCallbacks( enable_debug_callbacks ) {
+        EnableDebugCallbacks( enable_debug_callbacks ),
+        Scene( scene ) {
     }
 
     Application::~Application() {
@@ -42,16 +44,29 @@ namespace VulkanCookbook {
 
     bool Application::Init() {
         // Every part needs the ones before it
-        return MainWindow.Init( 800, 600, "Vulkan" ) &&
-               Context.Init( MainWindow, EnableValidation, EnableDebugCallbacks, MAX_MSAA_SAMPLES ) &&
-               Targets.Init( Context, MainWindow ) &&
-               SceneRenderer.Init( Context, Targets, MainWindow );
+        if( !MainWindow.Init( 800, 600, "Vulkan" ) ||
+            !Context.Init( MainWindow, EnableValidation, EnableDebugCallbacks, MAX_MSAA_SAMPLES ) ||
+            !Targets.Init( Context, MainWindow ) ) {
+            return false;
+        }
+        switch( Scene ) {
+            case DemoScene::Particles:  return Particles.Init( Context, Targets, MainWindow );
+            case DemoScene::Water:      return Water.Init( Context, Targets, MainWindow );
+            case DemoScene::Model:      break;
+        }
+        return SceneRenderer.Init( Context, Targets, MainWindow );
     }
 
     bool Application::Run() {
         while( !MainWindow.ShouldClose() ) {
             MainWindow.PollEvents();
-            if( !SceneRenderer.DrawFrame() ) {
+            bool frame_drawn = false;
+            switch( Scene ) {
+                case DemoScene::Model:      frame_drawn = SceneRenderer.DrawFrame(); break;
+                case DemoScene::Particles:  frame_drawn = Particles.DrawFrame(); break;
+                case DemoScene::Water:      frame_drawn = Water.DrawFrame(); break;
+            }
+            if( !frame_drawn ) {
                 return false;
             }
         }

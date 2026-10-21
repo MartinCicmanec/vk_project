@@ -78,7 +78,9 @@ namespace VulkanCookbook {
     }
 
     bool SwapchainTargets::SelectSwapchainSettings() {
-        if( !SelectDesiredPresentationMode(Context->PhysicalDevice, *Context->PresentationSurface, VK_PRESENT_MODE_MAILBOX_KHR, PresentMode) ) {
+        // FIFO (v-sync): presenting waits for the display's vertical blank, so the frame rate is limited to the monitor's
+        // refresh rate. Every driver supports it. (MAILBOX would keep rendering as fast as possible and only show the newest image.)
+        if( !SelectDesiredPresentationMode(Context->PhysicalDevice, *Context->PresentationSurface, VK_PRESENT_MODE_FIFO_KHR, PresentMode) ) {
             return false;
         }
         std::cout << "Selected present mode : " << PresentMode << std::endl;

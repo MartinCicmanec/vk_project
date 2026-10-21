@@ -33,8 +33,17 @@
 #include "VulkanContext.h"
 #include "SwapchainTargets.h"
 #include "Renderer.h"
+#include "ParticleRenderer.h"
+#include "WaterRenderer.h"
 
 namespace VulkanCookbook {
+
+    // Which renderer the application runs
+    enum class DemoScene {
+        Model,          // textured Viking room (the main tutorial chapters)
+        Particles,      // compute shader particle system
+        Water           // ocean with waves
+    };
 
     // Owns the parts of the program and runs the main loop
     class Application {
@@ -42,8 +51,9 @@ namespace VulkanCookbook {
         // Upper limit for multisample anti-aliasing - the device may support less (but always at least 4)
         static constexpr VkSampleCountFlagBits MAX_MSAA_SAMPLES = VK_SAMPLE_COUNT_4_BIT;
 
-        Application( bool enable_validation,
-                     bool enable_debug_callbacks );
+        Application( bool        enable_validation,
+                     bool        enable_debug_callbacks,
+                     DemoScene   scene );
         ~Application();
 
         bool Init();
@@ -52,13 +62,17 @@ namespace VulkanCookbook {
     private:
         bool               EnableValidation;
         bool               EnableDebugCallbacks;
+        DemoScene          Scene;
 
         // Members are destroyed in reverse order of declaration, and every part needs the ones before it:
         // renderer -> swapchain targets -> Vulkan context (allocator, device, surface, instance) -> window
         AppWindow          MainWindow;
         VulkanContext      Context;
         SwapchainTargets   Targets;
+        // Only one of the renderers is initialized and used - an uninitialized one holds no Vulkan objects
         Renderer           SceneRenderer;
+        ParticleRenderer   Particles;
+        WaterRenderer      Water;
     };
 
 } // namespace VulkanCookbook

@@ -36,7 +36,7 @@ namespace VulkanCookbook {
     bool CreatePresentationSurface( VkInstance         instance,
                                     WindowParameters   window_parameters,
                                     VkSurfaceKHR     & presentation_surface );
-    // Queue family that supports both graphics operations and presentation to the surface
+    // Queue family that supports graphics and compute operations and presentation to the surface
     bool SelectQueueFamilyWithGraphicsAndPresentationToSurface( VkPhysicalDevice   physical_device,
                                                                 VkSurfaceKHR       presentation_surface,
                                                                 uint32_t         & queue_family_index );

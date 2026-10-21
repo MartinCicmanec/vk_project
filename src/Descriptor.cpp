@@ -131,6 +131,69 @@ namespace VulkanCookbook {
         vkUpdateDescriptorSets( logical_device, static_cast<uint32_t>(descriptor_writes.size()), descriptor_writes.data(), 0, nullptr );
     }
 
+    void UpdateDescriptorSetsWithStorageBuffers( VkDevice                             logical_device,
+                                                 std::vector<VkDescriptorSet> const & descriptor_sets,
+                                                 uint32_t                             binding,
+                                                 std::vector<VkBuffer> const        & buffers ) {
+        // Kept alive until vkUpdateDescriptorSets is called - the writes point into this vector
+        std::vector<VkDescriptorBufferInfo> buffer_infos;
+        for( auto & buffer : buffers ) {
+            buffer_infos.push_back( {
+                buffer,                                             // VkBuffer         buffer
+                0,                                                  // VkDeviceSize     offset
+                VK_WHOLE_SIZE                                       // VkDeviceSize     range
+            } );
+        }
+
+        std::vector<VkWriteDescriptorSet> descriptor_writes;
+        for( size_t i = 0; i < descriptor_sets.size() && i < buffer_infos.size(); ++i ) {
+            descriptor_writes.push_back( {
+                VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,             // VkStructureType                  sType
+                nullptr,                                            // const void                     * pNext
+                descriptor_sets[i],                                 // VkDescriptorSet                  dstSet
+                binding,                                            // uint32_t                         dstBinding
+                0,                                                  // uint32_t                         dstArrayElement
+                1,                                                  // uint32_t                         descriptorCount
+                VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,                  // VkDescriptorType                 descriptorType
+                nullptr,                                            // const VkDescriptorImageInfo    * pImageInfo
+                &buffer_infos[i],                                   // const VkDescriptorBufferInfo   * pBufferInfo
+                nullptr                                             // const VkBufferView             * pTexelBufferView
+            } );
+        }
+
+        vkUpdateDescriptorSets( logical_device, static_cast<uint32_t>(descriptor_writes.size()), descriptor_writes.data(), 0, nullptr );
+    }
+
+    void UpdateDescriptorSetsWithStorageImage( VkDevice                             logical_device,
+                                               std::vector<VkDescriptorSet> const & descriptor_sets,
+                                               uint32_t                             binding,
+                                               VkImageView                          image_view,
+                                               VkImageLayout                        image_layout ) {
+        VkDescriptorImageInfo image_info = {
+            VK_NULL_HANDLE,                                     // VkSampler        sampler (storage images aren't sampled)
+            image_view,                                         // VkImageView      imageView
+            image_layout                                        // VkImageLayout    imageLayout
+        };
+
+        std::vector<VkWriteDescriptorSet> descriptor_writes;
+        for( auto & descriptor_set : descriptor_sets ) {
+            descriptor_writes.push_back( {
+                VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,             // VkStructureType                  sType
+                nullptr,                                            // const void                     * pNext
+                descriptor_set,                                     // VkDescriptorSet                  dstSet
+                binding,                                            // uint32_t                         dstBinding
+                0,                                                  // uint32_t                         dstArrayElement
+                1,                                                  // uint32_t                         descriptorCount
+                VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,                   // VkDescriptorType                 descriptorType
+                &image_info,                                        // const VkDescriptorImageInfo    * pImageInfo
+                nullptr,                                            // const VkDescriptorBufferInfo   * pBufferInfo
+                nullptr                                             // const VkBufferView             * pTexelBufferView
+            } );
+        }
+
+        vkUpdateDescriptorSets( logical_device, static_cast<uint32_t>(descriptor_writes.size()), descriptor_writes.data(), 0, nullptr );
+    }
+
     void UpdateDescriptorSetsWithCombinedImageSampler( VkDevice                             logical_device,
                                                        std::vector<VkDescriptorSet> const & descriptor_sets,
                                                        uint32_t                             binding,

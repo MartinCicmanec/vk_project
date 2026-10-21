@@ -103,7 +103,10 @@ namespace VulkanCookbook {
         }
 
         for( uint32_t index = 0; index < static_cast<uint32_t>(queue_families.size()); ++index ) {
-            if( (queue_families[index].queueCount == 0) || !(queue_families[index].queueFlags & VK_QUEUE_GRAPHICS_BIT) ) {
+            // Compute is needed by the particle renderer. A graphics family usually has it, but the spec only guarantees
+            // that at least one family supports both.
+            VkQueueFlags required_flags = VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT;
+            if( (queue_families[index].queueCount == 0) || ((queue_families[index].queueFlags & required_flags) != required_flags) ) {
                 continue;
             }
 

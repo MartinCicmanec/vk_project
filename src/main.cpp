@@ -38,6 +38,8 @@ int main(int argc, char * argv[]) {
 
     bool enable_verbose = false;
     bool debug_callbacks = false;
+    bool show_particles = false;
+    bool show_water = false;
     for ( int i = 0; i < argc; i = i + 1 ){
         if ((strcmp(argv[i], "-v") == 0) || (strcmp(argv[i], "--verbose") == 0)) {
             enable_verbose = true;
@@ -47,9 +49,29 @@ int main(int argc, char * argv[]) {
             debug_callbacks = true;
             std::cout << "Enabled debug callbacks" << std::endl;
         }
+        if ((strcmp(argv[i], "-p") == 0) || (strcmp(argv[i], "--particles") == 0)) {
+            show_particles = true;
+            std::cout << "Showing the compute shader particles" << std::endl;
+        }
+        if ((strcmp(argv[i], "-w") == 0) || (strcmp(argv[i], "--water") == 0)) {
+            show_water = true;
+            std::cout << "Showing the water" << std::endl;
+        }
     }
 
-    VulkanCookbook::Application application( enable_verbose, debug_callbacks );
+    // Only one scene can be shown
+    if (show_particles && show_water) {
+        std::cout << "-p and -w can't be used together." << std::endl;
+        return 1;
+    }
+    VulkanCookbook::DemoScene scene = VulkanCookbook::DemoScene::Model;
+    if (show_particles) {
+        scene = VulkanCookbook::DemoScene::Particles;
+    } else if (show_water) {
+        scene = VulkanCookbook::DemoScene::Water;
+    }
+
+    VulkanCookbook::Application application( enable_verbose, debug_callbacks, scene );
     if( !application.Init() || !application.Run() ) {
         return 1;
     }

@@ -1,0 +1,99 @@
+#version 450
+
+// One step of the ripple field: the damped 2D wave equation on a grid, plus the water pushed away by floating objects.
+// The two height images take turns: the current heights are read from one, the new ones are written over the previous
+// heights in the other (every invocation reads the previous height of its own cell before writing it).
+
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+layout(binding = 1, r32f) uniform image2D rippleHeight0;
+layout(binding = 2, r32f) uniform image2D rippleHeight1;
+
+// Must match struct RippleSource in include/Ripples.h
+struct RippleSource {
+    vec4 current;       // xy: position (world x, z), z: radius, w: depth below the surface
+    vec4 previous;      // xy: previous position, z: previous depth
+    vec4 earlier;       // xy: position two steps ago, z: depth two steps ago
+};
+layout(std430, binding = 3) readonly buffer RippleSources {
+    RippleSource sources[];
+};
+
+// Must match struct RippleStepConstants in include/Ripples.h
+layout(push_constant) uniform RippleStep {
+    uint  currentIndex;
+    uint  sourceOffset;
+    uint  sourceCount;
+    uint  cellCount;
+    float halfSize;
+    float courantSquared;
+    float damping;
+    float sourceStrength;
+} step;
+
+// Images can't be selected with a variable index without an extra device feature - choose with a branch instead
+float LoadCurrent( ivec2 cell ) {
+    // Outside the field: same as the border cell (no slope across the edge)
+    cell = clamp( cell, ivec2( 0 ), ivec2( step.cellCount - 1 ) );
+    return (step.currentIndex == 0u) ? imageLoad( rippleHeight0, cell ).r : imageLoad( rippleHeight1, cell ).r;
+}
+
+float LoadPrevious( ivec2 cell ) {
+    return (step.currentIndex == 0u) ? imageLoad( rippleHeight1, cell ).r : imageLoad( rippleHeight0, cell ).r;
+}
+
+void StoreNext( ivec2 cell, float height ) {
+    if( step.currentIndex == 0u ) {
+        imageStore( rippleHeight1, cell, vec4( height ) );
+    } else {
+        imageStore( rippleHeight0, cell, vec4( height ) );
+    }
+}
+
+// Water a body pushes away at this point: down under the body, up in a ring around it, with the same volume - the
+// displaced water has to go somewhere, and nothing is added to the field as a whole. Smooth (two Gaussians, the
+// outer one twice as wide and 1/4 as high): a sharp edge would add detail finer than the grid can carry.
+float Displacement( vec2 position, vec2 center, float radius, float depth ) {
+    vec2 offset = (position - center) / radius;
+    float distance_squared = dot( offset, offset );
+    return depth * (exp( -2.0 * distance_squared ) - 0.25 * exp( -0.5 * distance_squared ));
+}
+
+void main() {
+    ivec2 cell = ivec2( gl_GlobalInvocationID.xy );
+    if( any( greaterThanEqual( cell, ivec2( step.cellCount ) ) ) ) {
+        return;
+    }
+
+    float height = LoadCurrent( cell );
+    float previous = LoadPrevious( cell );
+    float laplacian = LoadCurrent( cell + ivec2( 1, 0 ) ) + LoadCurrent( cell - ivec2( 1, 0 ) ) +
+                      LoadCurrent( cell + ivec2( 0, 1 ) ) + LoadCurrent( cell - ivec2( 0, 1 ) ) - 4.0 * height;
+
+    // Verlet integration of the wave equation: next = 2 h - h_previous + (c dt / dx)^2 * laplacian
+    float next = 2.0 * height - previous + step.courantSquared * laplacian;
+
+    // Damping, much stronger in the last 24 cells, so waves fade out instead of reflecting at the border
+    int border_distance = min( min( cell.x, cell.y ), int( step.cellCount ) - 1 - max( cell.x, cell.y ) );
+    float border_damping = mix( 0.9, 1.0, clamp( float( border_distance ) / 24.0, 0.0, 1.0 ) );
+    next *= step.damping * border_damping;
+
+    // Floating objects move the surface by the change of the water they push away. In this integration the
+    // difference of two steps is the velocity of the surface, so adding the change of one step would also add a
+    // lasting velocity (and heights would keep drifting after the body stopped). The second difference
+    // (now - 2 previous + earlier) adds the displacement only: the surface follows the body while it moves, and the
+    // wave equation carries the disturbance away as rings and wakes.
+    float cell_size = 2.0 * step.halfSize / float( step.cellCount );
+    vec2 position = (vec2( cell ) + 0.5) * cell_size - step.halfSize;
+    for( uint i = 0u; i < step.sourceCount; ++i ) {
+        RippleSource source = sources[step.sourceOffset + i];
+        float radius = source.current.z;
+        float displacement_change = Displacement( position, source.current.xy, radius, source.current.w ) -
+                                    2.0 * Displacement( position, source.previous.xy, radius, source.previous.z ) +
+                                    Displacement( position, source.earlier.xy, radius, source.earlier.z );
+        next -= step.sourceStrength * displacement_change;
+    }
+
+    // Safety limit - an extreme impact must not create a spike that the grid can't represent
+    StoreNext( cell, clamp( next, -1.0, 1.0 ) );
+}

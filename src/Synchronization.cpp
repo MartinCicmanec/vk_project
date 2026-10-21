@@ -92,4 +92,33 @@ namespace VulkanCookbook {
         return true;
     }
 
+    void RecordMemoryBarrier( VkCommandBuffer         command_buffer,
+                              VkPipelineStageFlags2   source_stage,
+                              VkAccessFlags2          source_access,
+                              VkPipelineStageFlags2   destination_stage,
+                              VkAccessFlags2          destination_access ) {
+        VkMemoryBarrier2 memory_barrier = {
+            VK_STRUCTURE_TYPE_MEMORY_BARRIER_2,         // VkStructureType          sType
+            nullptr,                                    // const void             * pNext
+            source_stage,                               // VkPipelineStageFlags2    srcStageMask
+            source_access,                              // VkAccessFlags2           srcAccessMask
+            destination_stage,                          // VkPipelineStageFlags2    dstStageMask
+            destination_access                          // VkAccessFlags2           dstAccessMask
+        };
+
+        VkDependencyInfo dependency_info = {
+            VK_STRUCTURE_TYPE_DEPENDENCY_INFO,          // VkStructureType                  sType
+            nullptr,                                    // const void                     * pNext
+            0,                                          // VkDependencyFlags                dependencyFlags
+            1,                                          // uint32_t                         memoryBarrierCount
+            &memory_barrier,                            // const VkMemoryBarrier2         * pMemoryBarriers
+            0,                                          // uint32_t                         bufferMemoryBarrierCount
+            nullptr,                                    // const VkBufferMemoryBarrier2   * pBufferMemoryBarriers
+            0,                                          // uint32_t                         imageMemoryBarrierCount
+            nullptr                                     // const VkImageMemoryBarrier2    * pImageMemoryBarriers
+        };
+
+        vkCmdPipelineBarrier2( command_buffer, &dependency_info );
+    }
+
 } // namespace VulkanCookbook

@@ -1,0 +1,64 @@
+#version 450
+#extension GL_GOOGLE_include_directive : require
+
+#include "ocean.glsl"
+
+// Moves the splash particles and adds the new ones. Every invocation owns one particle, so the buffer is updated in place.
+
+layout(local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
+
+// Must match struct SplashParticle in include/Splashes.h
+struct SplashParticle {
+    vec4 positionLife;      // xyz: position, w: remaining life in seconds
+    vec4 velocitySize;      // xyz: velocity, w: radius
+};
+layout(std430, binding = 4) buffer SplashParticles {
+    SplashParticle particles[];
+};
+layout(std430, binding = 5) readonly buffer SpawnedParticles {
+    SplashParticle spawned[];
+};
+
+// Must match struct SplashUpdateConstants in include/Splashes.h
+layout(push_constant) uniform SplashUpdate {
+    float deltaTime;
+    uint  spawnOffset;
+    uint  spawnCount;
+    uint  particleCount;
+} update;
+
+void main() {
+    uint index = gl_GlobalInvocationID.x;
+    if( index >= update.particleCount ) {
+        return;
+    }
+
+    // New particles replace the oldest slots of the ring, whether those are still alive or not
+    uint spawn_index = (index + update.particleCount - update.spawnOffset) % update.particleCount;
+    if( spawn_index < update.spawnCount ) {
+        particles[index] = spawned[spawn_index];
+        return;
+    }
+
+    SplashParticle particle = particles[index];
+    if( particle.positionLife.w <= 0.0 ) {
+        return;
+    }
+
+    float dt = update.deltaTime;
+    vec3 velocity = particle.velocitySize.xyz;
+    velocity.y -= 9.81 * dt;
+    velocity *= exp( -0.4 * dt );       // air drag
+    vec3 position = particle.positionLife.xyz + velocity * dt;
+    float life = particle.positionLife.w - dt;
+
+    // Back in the water - gone. The height at the grid point (x, z) is used for the world position (x, z): close enough
+    // for a few centimeters of horizontal wave displacement.
+    float water_height = GerstnerPosition( position.xz, ubo.cameraPositionAndTime.w, 0.0 ).y + RippleHeight( position.xz );
+    if( (position.y < water_height) && (velocity.y < 0.0) ) {
+        life = 0.0;
+    }
+
+    particles[index].positionLife = vec4( position, life );
+    particles[index].velocitySize.xyz = velocity;
+}

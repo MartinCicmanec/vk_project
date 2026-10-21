@@ -68,9 +68,11 @@ namespace VulkanCookbook {
         VkSampleCountFlagBits                           MsaaSamples = VK_SAMPLE_COUNT_1_BIT;
         // Highest anisotropy the device allows for samplers
         float                                           MaxSamplerAnisotropy = 1.0f;
+        // Point sizes other than 1.0 are supported (and enabled on the logical device)
+        bool                                            LargePointsSupported = false;
 
         VkDestroyer(VkDevice)                           LogicalDevice;
-        // Queue used for both graphics commands and presentation
+        // Queue used for graphics and compute commands and presentation
         VkQueue                                         GraphicsAndPresentQueue = VK_NULL_HANDLE;
 
         // Memory allocator (VMA) for all buffers and images

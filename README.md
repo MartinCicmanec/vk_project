@@ -21,12 +21,14 @@ The window system defaults to Wayland. For an X11 session configure with `-DVK_U
 
 ### Usage
 ```
-./bin/main [-v] [-d]
+./bin/main [-v] [-d] [-p | -w]
 ```
 | Option | Description |
 |---|---|
 | `-v`, `--verbose` | Enable the `VK_LAYER_KHRONOS_validation` layer (requires the validation layers to be installed). |
 | `-d`, `--debug` | Register a debug report callback that prints layer messages. Use together with `-v`. |
+| `-p`, `--particles` | Show the particle system of the "Compute Shader" chapter instead of the model. |
+| `-w`, `--water` | Show the ocean scene instead of the model. Can't be combined with `-p`. |
 
 ## Windows
 

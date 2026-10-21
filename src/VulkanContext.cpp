@@ -155,7 +155,7 @@ namespace VulkanCookbook {
         }
 
         // Use the first physical device that supports Vulkan 1.3 with dynamic rendering and synchronization2,
-        // anisotropic filtering, and has a queue family that supports both graphics and presentation to the surface
+        // anisotropic filtering, and has a queue family that supports graphics, compute and presentation to the surface
         for( auto & device : physical_devices ) {
             // The instance version (Instance.cpp) and the device version are separate - an old driver can report less
             VkPhysicalDeviceProperties device_properties;
@@ -184,11 +184,12 @@ namespace VulkanCookbook {
                 PhysicalDevice = device;
                 MsaaSamples = GetMaxUsableSampleCount( device, max_msaa_samples );
                 MaxSamplerAnisotropy = device_properties.limits.maxSamplerAnisotropy;
+                LargePointsSupported = (supported_features.features.largePoints == VK_TRUE);
                 break;
             }
         }
         if( PhysicalDevice == VK_NULL_HANDLE ) {
-            std::cout << "Could not find a physical device with Vulkan 1.3 (dynamic rendering, synchronization2), anisotropic filtering and a queue family that supports graphics and presentation." << std::endl;
+            std::cout << "Could not find a physical device with Vulkan 1.3 (dynamic rendering, synchronization2), anisotropic filtering and a queue family that supports graphics, compute and presentation." << std::endl;
             return false;
         }
         std::cout << "Queue Family Index : " << QueueFamilyIndex << std::endl;
@@ -215,6 +216,8 @@ namespace VulkanCookbook {
         desired_features.sType                      = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
         desired_features.pNext                      = &desired_vulkan13_features;
         desired_features.features.samplerAnisotropy = VK_TRUE;
+        // Point sizes other than 1.0 (particle renderer) - optional, only enabled when supported
+        desired_features.features.largePoints       = LargePointsSupported ? VK_TRUE : VK_FALSE;
 
         InitVkDestroyer(LogicalDevice);
         if( !CreateLogicalDeviceWithWsiExtensionsEnabled(PhysicalDevice, queue_infos, desired_device_extensions, &desired_features, *LogicalDevice) ) {

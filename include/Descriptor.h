@@ -51,6 +51,18 @@ namespace VulkanCookbook {
                                                  uint32_t                             binding,
                                                  std::vector<VkBuffer> const        & buffers,
                                                  VkDeviceSize                         range );
+    // Points the storage buffer descriptor at the given binding of descriptor_sets[i] to the whole of buffers[i]
+    void UpdateDescriptorSetsWithStorageBuffers( VkDevice                             logical_device,
+                                                 std::vector<VkDescriptorSet> const & descriptor_sets,
+                                                 uint32_t                             binding,
+                                                 std::vector<VkBuffer> const        & buffers );
+
+    // Points the storage image descriptor at the given binding of every set to the same image view
+    void UpdateDescriptorSetsWithStorageImage( VkDevice                             logical_device,
+                                               std::vector<VkDescriptorSet> const & descriptor_sets,
+                                               uint32_t                             binding,
+                                               VkImageView                          image_view,
+                                               VkImageLayout                        image_layout );
 
     // Points the combined image sampler descriptor at the given binding of every set to the same image view and sampler
     void UpdateDescriptorSetsWithCombinedImageSampler( VkDevice                             logical_device,

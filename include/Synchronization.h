@@ -43,6 +43,14 @@ namespace VulkanCookbook {
                         uint64_t                     timeout );
     bool ResetFences( VkDevice                     logical_device,
                       std::vector<VkFence> const & fences );
+    // Records a global memory barrier (Vulkan 1.3 synchronization2) - for all buffers and images: operations in
+    // destination_stage with destination_access wait for the operations in source_stage with source_access.
+    // Image layout changes need RecordImageBarrier (Image.h).
+    void RecordMemoryBarrier( VkCommandBuffer         command_buffer,
+                              VkPipelineStageFlags2   source_stage,
+                              VkAccessFlags2          source_access,
+                              VkPipelineStageFlags2   destination_stage,
+                              VkAccessFlags2          destination_access );
 
 } // namespace VulkanCookbook
 
